@@ -1,0 +1,2 @@
+# ALTHue
+Alternate Hue Plugin
