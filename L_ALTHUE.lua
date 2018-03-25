@@ -108,12 +108,6 @@ local function isempty(s)
   return s == nil or s == ""
 end
 
-local function extractTagValue(xml)
-  local pattern = "<(.*)>(.*)</.*>"
-  local resa,resb = string.match( xml, pattern)
-  return resa,resb
-end
-
 local function findTHISDevice()
   for k,v in pairs(luup.devices) do
 	if( v.device_type == devicetype ) then
@@ -197,6 +191,7 @@ local function task(text, mode)
   else
 	log(text)
   end
+  
   if (mode == TASK_ERROR_PERM)
   then
 	taskHandle = luup.task(text, TASK_ERROR, MSG_CLASS, taskHandle)
@@ -316,84 +311,10 @@ local function getRoot(lul_device)
   end
   return lul_device
 end
+
 ------------------------------------------------
 -- Communication TO ALTHUE system
 ------------------------------------------------
-
-local function myHttpGet(dst_ipaddr,dst_port,uri,timeout,credentials)
-  debug( string.format("myHttpGet(%s,%s,%s,%s,%s)",dst_ipaddr,dst_port,uri,timeout,credentials) )
-  local a,b,s
-  local result = {}
-  local command = string.format("GET %s HTTP/1.1\r\n",uri)
-  dst_port = dst_port or 80
-  timeout = timeout or 5
-
-  local auth = ""
-  if (isempty(credentials) == false) then
-	auth = "Authorization: Basic ".. credentials .. "\r\n"
-  end
-
-  local headers = [[
-Host: %s
-User-Agent: LuaSocket 3.0-rc1
-Accept: */*
-TE: trailers
-Connection: close, TE
-]]
-  headers = string.format(headers,dst_ipaddr)
-  headers = headers:gsub("\n","\r\n")
-
-  local tcp,b = socket.tcp()
-  if (tcp==nil) then
-	  error( string.format("Socket tcp creation failed. err:%s",b or ""))
-  else
-	tcp:settimeout( timeout )
-	s,b = tcp:connect (dst_ipaddr, dst_port) -- this should be server IP
-	if (s==nil) then
-	  error( string.format("Socket connect to %s:%s failed, err:%s",dst_ipaddr,dst_port,b or ""))
-	else
-	  tcp:settimeout(timeout)
-	  a,b  = tcp:send(command..auth..headers)
-	  if (a==nil) then
-		error( string.format("Socket send failed, err=%s",b or ""))
-	  else
-		a,b = tcp:receive('*l')
-		debug(string.format("Socket received: %s",a or ""))
-		-- should be HTTP/1.1 200 OK
-		if (a==nil) or (a~="HTTP/1.1 200 OK") then
-		  error( string.format("Socket received failed, err=%s",b or ""))
-		else
-		  -- HEADERS
-		  repeat
-			a,b,s = tcp:receive('*l')
-			if (a~=nil) then
-			  debug(string.format("header received: %s",a))
-			else
-			  debug(string.format("b=%s s=%s",b,s))
-			end
-		  until #a == 0 -- empty line received
-
-		  -- BODY
-		  repeat
-			a,b,s = tcp:receive('*l')
-			if (a~=nil) then
-			  table.insert(result, a)
-			elseif (s~=nil) then
-			  -- strange but apparently we receive a socket "close" while there is still some data in 's'
-			  table.insert(result, s)
-			end
-		  until b	-- that is, until "timeout" or "closed"
-
-		  tcp:close()
-		  return table.concat(result)
-		end
-	  end
-	  tcp:close()
-	end
-  end
-  return nil,b
-end
-
 local function ALTHueHttpCall(lul_device,verb,cmd,body)
 	local result = {}
 	verb = verb or "GET"
@@ -423,13 +344,13 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 		-- fail to connect
 	if (request==nil) then
 		error(string.format("failed to connect to %s, http.request returned nil", newUrl))
-		return 0,""
+		return 0,"failed to connect"
 	elseif (code==401) then
 		warning(string.format("Access requires a user/password: %d", code))
-		return 0,""
+		return 0,"unauthorized access - 401"
 	elseif (code~=200) then
 		warning(string.format("http.request returned a bad code: %d", code))
-		return 0,""
+		return 0,"unvalid return code:" .. code
 	end
 
 	-- everything looks good
@@ -437,43 +358,12 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 	debug(string.format("request:%s",request))
 	debug(string.format("code:%s",code))
 
-	return data
+	return json.decode(data) ,""
 end
 
-local function oldAxLTHueHttpCall(lul_device,cmd,data)
-  lul_device = tonumber(lul_device)
-  local lul_root = getRoot(lul_device)
-  data = data  or ""
-  debug(string.format("oldAxLTHueHttpCall(%d,%s,%s) , root:%s",lul_device,cmd,data,lul_root))
-
-  -- get parameter from root device
-  local credentials= getSetVariable(ALTHUE_SERVICE,"Credentials", lul_root, "")
-  local ip_address = luup.attr_get ('ip', lul_root )
-
-  if (isempty(ip_address)) then
-	warning(string.format("IPADDR is not initialized. ipaddr=%s",ip_address))
-	return nil
-  end
-  if (credentials=="") then
-	warning("Missing credentials for ALTHue device :"..lul_device)
-	return nil
-  end
-
-  -- local uri = string.format ("/%s?%s", cmd,data)
-  -- local txt,msg = myHttpGet(ip_address,80,uri,5,credentials)
-  local txt = nil
-  local msg = "todo"
-
-  if (txt==nil) then
-	-- failure
-	setVariableIfChanged(ALTHUE_SERVICE, "IconCode", 0, lul_device)
-	debug(string.format("failure=> Error Message:%s",msg or ""))
-	return nil
-  end
-  -- success
-  debug(string.format("myHttpGet returns:%s",txt))
-  setVariableIfChanged(ALTHUE_SERVICE, "IconCode", 100, lul_device)
-  return txt
+local function getHueConfig(lul_device)
+	local data,msg = ALTHueHttpCall(lul_device,"GET","config")
+	return data,msg
 end
 
 ------------------------------------------------------------------------------------------------
@@ -613,15 +503,39 @@ end
 local function startEngine(lul_device)
   debug(string.format("startEngine(%s)",lul_device))
   lul_device = tonumber(lul_device)
-  local data = ALTHueHttpCall(lul_device,"GET","newdeveloper",nil)
 
+  local data,msg = getHueConfig(lul_device)
   if (data ~= nil) then
-	-- local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
-	-- luup.call_delay("refreshEngineCB",period,tostring(lul_device))
-	-- return loadALTHueData(lul_device,data)
-	debug(string.format("return data: %s",data))
+	debug(string.format("return data: %s", json.encode(data)))
+	setAttrIfChanged("manufacturer", data.name, lul_device)
+	setAttrIfChanged("model", data.modelid, lul_device)
+	setAttrIfChanged("mac", data.mac, lul_device)
+	
+
+	local credentials = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
+	if (isempty(credentials)) then
+		UserMessage(string.format("The plugin is not linked to your Hue Bridge. Press the Hue bridge central button and reload luup"),TASK_ERROR_PERM)
+	else
+		debug(string.format("credential is set to %s",credentials))
+		
+		local data,msg = ALTHueHttpCall(lul_device,"GET","newdeveloper",nil)
+		if ( (data~=nil) and (tablelength(data)>=1) ) then
+			debug(string.format("return data: %s", json.encode(data)))
+			if (data[1].error ~= nil) then
+				error("Philips Hue Bridge returned an error : " .. data[1].error.description);
+			else
+				debug(string.format("communication with Hue Bridge seems ok: %s", json.encode(data)))
+				-- local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
+				-- luup.call_delay("refreshEngineCB",period,tostring(lul_device))
+				-- return loadALTHueData(lul_device,data)
+			end
+		else
+			error("Failed to communicate with the Philips Hue Bridge : " .. msg);
+		end
+	end
   else
-	UserMessage(string.format("missing ip addr or credentials for device "..lul_device),TASK_ERROR_PERM)
+	-- Get Hue Config failed
+	UserMessage(string.format("Not able to reach the Hue Bridge (missing ip addr in attributes ?, device:%s, msg:%s",lul_device,msg),TASK_ERROR_PERM)
   end
   return true
 end

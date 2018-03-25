@@ -111,10 +111,7 @@ function ALTHUE_Settings(deviceID) {
 						<label for="althue-username">User Name</label>		\
 						<input type="text" class="form-control" id="althue-username" placeholder="User">	\
 					</div>																										\
-					<div class="form-group col-xs-6 col-6">																	\
-						<label for="althue-pwd">Password</label>			\
-						<input type="password" class="form-control" id="althue-pwd" placeholder="Password">	\
-					</div>	'+htmlConfigs+'																							\
+					'+htmlConfigs+'																							\
 					<div class="form-group col-xs-12 col-12">																	\
 						<button id="althue-submit" type="submit" class="btn btn-primary">Submit</button>	\
 					</div>																										\
@@ -122,10 +119,10 @@ function ALTHUE_Settings(deviceID) {
       </div>                                                    \
     '		
 	set_panel_html(html);
-	var arr = atob(credentials).split(":");
+	// var arr = atob(credentials).split(":");
 	jQuery( "#althue-ipaddr" ).val(ip_address);
-	jQuery( "#althue-username" ).val(arr[0]);
-	jQuery( "#althue-pwd" ).val(arr[1]);
+	jQuery( "#althue-username" ).val(credentials);
+	// jQuery( "#althue-pwd" ).val(arr[1]);
 	jQuery( "#althue-RefreshPeriod" ).val(poll);
 		
 	jQuery( "#althue-settings-form" ).on("submit", function(event) {
@@ -133,12 +130,12 @@ function ALTHUE_Settings(deviceID) {
 		event.preventDefault();
 		var ip_address = jQuery( "#althue-ipaddr" ).val();
 		var usr = jQuery( "#althue-username" ).val();
-		var pwd = jQuery( "#althue-pwd" ).val();
+		// var pwd = jQuery( "#althue-pwd" ).val();
 		var poll = jQuery( "#althue-RefreshPeriod" ).val();
 		
-		var encode = btoa( "{0}:{1}".format(usr,pwd) );
+		// var encode = btoa( "{0}:{1}".format(usr,pwd) );
 		if (goodip(ip_address)) {
-			saveVar( deviceID,  ALTHUE_Svs, "Credentials", encode, 0 )
+			saveVar( deviceID,  ALTHUE_Svs, "Credentials", usr, 0 )
 			saveVar( deviceID,  ALTHUE_Svs, "RefreshPeriod", poll, 0 )
 			saveVar( deviceID,  null , "ip", ip_address, 0 )
 			jQuery.each( configs, function(idx,obj) {
