@@ -366,6 +366,13 @@ local function getHueConfig(lul_device)
 	return data,msg
 end
 
+local function getNewUserID(lul_device)
+	local body = string.format( '{"devicetype":"ALTHue#Vera%s"}',luup.pk_accesspoint )
+	local data,msg = ALTHueHttpCall(lul_device,"POST","",body)
+	return data,msg
+end
+
+
 ------------------------------------------------------------------------------------------------
 -- Http handlers : Communication FROM ALTUI
 -- http://192.168.1.5:3480/data_request?id=lr_ALTHUE_Handler&command=xxx
@@ -522,9 +529,14 @@ local function startEngine(lul_device)
 		if ( (data~=nil) and (tablelength(data)>=1) ) then
 			debug(string.format("return data: %s", json.encode(data)))
 			if (data[1].error ~= nil) then
-				error("Philips Hue Bridge returned an error : " .. data[1].error.description);
+				error("User is not registered to Philips Hue Bridge : " .. data[1].error.description);
+				-- must get a new user ID
+				data,msg = getNewUserID(lul_device)
+				debug(string.format("return data: %s", json.encode(data)))
+				return false				
 			else
 				debug(string.format("communication with Hue Bridge seems ok: %s", json.encode(data)))
+				return true
 				-- local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
 				-- luup.call_delay("refreshEngineCB",period,tostring(lul_device))
 				-- return loadALTHueData(lul_device,data)
@@ -537,7 +549,7 @@ local function startEngine(lul_device)
 	-- Get Hue Config failed
 	UserMessage(string.format("Not able to reach the Hue Bridge (missing ip addr in attributes ?, device:%s, msg:%s",lul_device,msg),TASK_ERROR_PERM)
   end
-  return true
+  return false
 end
 
 function startupDeferred(lul_device)
