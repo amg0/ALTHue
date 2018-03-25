@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<implementation>
+  <functions>
+  </functions>
+  <files>L_ALTHUE.lua</files>
+  <startup>initstatus</startup>
+  <actionList>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:althue1</serviceId>
+			<name>SetDebug</name>
+			<job>
+			setDebugMode(lul_device,lul_settings.newDebugMode)
+			return 4,0
+			</job>
+		</action>
+	
+		<action>
+			<serviceId>urn:upnp-org:serviceId:althue1</serviceId>
+			<name>Refresh</name>
+			<job>
+			refreshData(lul_device)
+			return 4,0
+			</job>
+		</action>
+
+		<action>
+		  <serviceId>urn:upnp-org:serviceId:TemperatureSensor1</serviceId>
+		  <name>GetCurrentTemperature</name>
+		  <run>
+				getCurrentTemperature(lul_device)
+		  </run>
+		</action>
+		
+		<action>
+		  <serviceId>urn:upnp-org:serviceId:SwitchPower1</serviceId>
+		  <name>SetTarget</name>
+		  <run>
+				UserSetPowerTarget(lul_device,lul_settings.newTargetValue)
+		  </run>
+		</action>
+		
+		<action>
+		  <serviceId>urn:micasaverde-com:serviceId:HaDevice1</serviceId>
+		  <name>ToggleState</name>
+		  <run>
+				UserToggleState(lul_device)
+		  </run>
+		</action>
+	</actionList>
+</implementation>
