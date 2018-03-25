@@ -321,8 +321,9 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 	cmd = cmd or ""
 	body = body or ""
 	debug(string.format("ALTHueHttpCall(%d,%s,%s,%s)",lul_device,verb,cmd,body))
+	local credentials = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
 	local ipaddr = luup.attr_get ('ip', lul_device )
-	local newUrl = string.format("http://%s/api/%s",ipaddr,cmd)
+	local newUrl = string.format("http://%s/api/%s/%s",ipaddr,credentials,cmd)
 	local request, code = http.request({
 		method=verb,
 		url = newUrl,
@@ -372,6 +373,11 @@ local function getNewUserID(lul_device)
 	return data,msg
 end
 
+local function getTimezones(lul_device)
+	-- /api/<username>/capabilities/timezones
+	local data,msg = ALTHueHttpCall(lul_device,"GET","capabilities/timezones")
+	return data,msg
+end
 
 ------------------------------------------------------------------------------------------------
 -- Http handlers : Communication FROM ALTUI
@@ -507,6 +513,37 @@ local function refreshData(lul_device)
   refreshEngineCB(lul_device,true)
 end
 
+local function verifyUserConfig(lul_device)
+	local data,msg = getTimezones(lul_device)
+	if ( (data~=nil) and (tablelength(data)>=1) ) then
+		debug(string.format("return data: %s", json.encode(data)))
+		if (data[1].error ~= nil) then
+			error("User is not registered to Philips Hue Bridge : " .. data[1].error.description);
+			-- must get a new user ID
+			data,msg = getNewUserID(lul_device)
+			debug(string.format("return data: %s", json.encode(data)))
+			if (data[1].error ~= nil) then
+				error("New User is not accepted by the bridge, did you press the Link button on the Bridge ? : " .. data[1].error.description);
+			else
+				-- [{"success":{"username": "83b7780291a6ceffbe0bd049104df"}}]
+				credentials = data[1].username
+				setVariableIfChanged(ALTHUE_SERVICE, "Credentials", credentials, lul_device)
+				return true
+			end
+			return false				
+		else
+			debug(string.format("communication with Hue Bridge seems ok: %s", json.encode(data)))
+			return true
+			-- local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
+			-- luup.call_delay("refreshEngineCB",period,tostring(lul_device))
+			-- return loadALTHueData(lul_device,data)
+		end
+	else
+		error("Failed to communicate with the Philips Hue Bridge : " .. msg);
+	end
+	return false
+end
+
 local function startEngine(lul_device)
   debug(string.format("startEngine(%s)",lul_device))
   lul_device = tonumber(lul_device)
@@ -517,34 +554,14 @@ local function startEngine(lul_device)
 	setAttrIfChanged("manufacturer", data.name, lul_device)
 	setAttrIfChanged("model", data.modelid, lul_device)
 	setAttrIfChanged("mac", data.mac, lul_device)
-	
 
 	local credentials = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
 	if (isempty(credentials)) then
-		UserMessage(string.format("The plugin is not linked to your Hue Bridge. Press the Hue bridge central button and reload luup"),TASK_ERROR_PERM)
+		UserMessage(string.format("The plugin is not linked to your Hue Bridge. make sure you have pressed the Hue bridge central button and reload luup"),TASK_ERROR_PERM)
 	else
-		debug(string.format("credential is set to %s",credentials))
-		
-		local data,msg = ALTHueHttpCall(lul_device,"GET","newdeveloper",nil)
-		if ( (data~=nil) and (tablelength(data)>=1) ) then
-			debug(string.format("return data: %s", json.encode(data)))
-			if (data[1].error ~= nil) then
-				error("User is not registered to Philips Hue Bridge : " .. data[1].error.description);
-				-- must get a new user ID
-				data,msg = getNewUserID(lul_device)
-				debug(string.format("return data: %s", json.encode(data)))
-				return false				
-			else
-				debug(string.format("communication with Hue Bridge seems ok: %s", json.encode(data)))
-				return true
-				-- local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
-				-- luup.call_delay("refreshEngineCB",period,tostring(lul_device))
-				-- return loadALTHueData(lul_device,data)
-			end
-		else
-			error("Failed to communicate with the Philips Hue Bridge : " .. msg);
-		end
+		debug(string.format("credential is already set to %s",credentials))
 	end
+	return verifyUserConfig(lul_device)
   else
 	-- Get Hue Config failed
 	UserMessage(string.format("Not able to reach the Hue Bridge (missing ip addr in attributes ?, device:%s, msg:%s",lul_device,msg),TASK_ERROR_PERM)
