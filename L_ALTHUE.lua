@@ -394,11 +394,57 @@ Connection: close, TE
   return nil,b
 end
 
-local function ALTHueHttpCall(lul_device,cmd,data)
+local function ALTHueHttpCall(lul_device,verb,cmd,body)
+	local result = {}
+	verb = verb or "GET"
+	cmd = cmd or ""
+	body = body or ""
+	debug(string.format("ALTHueHttpCall(%d,%s,%s,%s)",lul_device,verb,cmd,body))
+	local ipaddr = luup.attr_get ('ip', lul_device )
+	local newUrl = string.format("http://%s/api/%s",ipaddr,cmd)
+	local request, code = http.request({
+		method=verb,
+		url = newUrl,
+		source= ltn12.source.string(body),
+		headers = {
+			-- ["Connection"]= "keep-alive",
+			["Content-Length"] = body:len(),
+			-- ["Origin"]="http://192.168.1.5",
+			-- ["User-Agent"]="Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.134 Safari/537.36",
+			-- ["Content-Type"] = "text/xml;charset=UTF-8",
+			["Accept"]="text/plain, */*; q=0.01"
+			-- ["X-Requested-With"]="XMLHttpRequest",
+			-- ["Accept-Encoding"]="gzip, deflate",
+			-- ["Accept-Language"]= "fr,fr-FR;q=0.8,en;q=0.6,en-US;q=0.4",
+		},
+		sink = ltn12.sink.table(result)
+	})
+
+		-- fail to connect
+	if (request==nil) then
+		error(string.format("failed to connect to %s, http.request returned nil", newUrl))
+		return 0,""
+	elseif (code==401) then
+		warning(string.format("Access requires a user/password: %d", code))
+		return 0,""
+	elseif (code~=200) then
+		warning(string.format("http.request returned a bad code: %d", code))
+		return 0,""
+	end
+
+	-- everything looks good
+	local data = table.concat(result)
+	debug(string.format("request:%s",request))
+	debug(string.format("code:%s",code))
+
+	return data
+end
+
+local function oldAxLTHueHttpCall(lul_device,cmd,data)
   lul_device = tonumber(lul_device)
   local lul_root = getRoot(lul_device)
   data = data  or ""
-  debug(string.format("ALTHueHttpCall(%d,%s,%s) , root:%s",lul_device,cmd,data,lul_root))
+  debug(string.format("oldAxLTHueHttpCall(%d,%s,%s) , root:%s",lul_device,cmd,data,lul_root))
 
   -- get parameter from root device
   local credentials= getSetVariable(ALTHUE_SERVICE,"Credentials", lul_root, "")
@@ -567,13 +613,13 @@ end
 local function startEngine(lul_device)
   debug(string.format("startEngine(%s)",lul_device))
   lul_device = tonumber(lul_device)
+  local data = ALTHueHttpCall(lul_device,"GET","newdeveloper",nil)
 
-  local data = ALTHueHttpCall(lul_device,"")
-  -- local xmldata = ALTHueHttpCall(lul_device,"xml/zones/zonesDescription16IP.xml")
   if (data ~= nil) then
-	local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
-	luup.call_delay("refreshEngineCB",period,tostring(lul_device))
-	return loadALTHueData(lul_device,data)
+	-- local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
+	-- luup.call_delay("refreshEngineCB",period,tostring(lul_device))
+	-- return loadALTHueData(lul_device,data)
+	debug(string.format("return data: %s",data))
   else
 	UserMessage(string.format("missing ip addr or credentials for device "..lul_device),TASK_ERROR_PERM)
   end
