@@ -63,103 +63,154 @@ function ALTHUE_Donate(deviceID) {
 //-------------------------------------------------------------	
 
 function ALTHUE_Settings(deviceID) {
-	var debug  = get_device_state(deviceID,  ALTHUE_Svs, 'Debug',1);
-	var credentials = get_device_state(deviceID,  ALTHUE_Svs, 'Credentials',1);
-	var poll = get_device_state(deviceID,  ALTHUE_Svs, 'RefreshPeriod',1);
-	var ip_address = jsonp.ud.devices[findDeviceIdx(deviceID)].ip;
-	var configs = [
-		// { name: "UserFTP", label: "User pour FTP" , placeholder: "doit etre configure sur le ALTHUE, par default adminftp"},
-		// { name: "PasswordFTP", type:"password", label: "Password pour FTP" , placeholder: "doit etre configure sur le ALTHUE, par default wesftp"},
-		{ name: "NamePrefix", label: "Prefix pour les noms" , placeholder: "Prefix ou vide"},
-		// { name: "AnalogClamps", label: "Pinces Analogiques" , placeholder: "comma separated list of indexes" , func: goodcsv},
-		// { name: "AnalogInputs", label: "Inputs Analogiques" , placeholder: "comma separated list of indexes", func: goodcsv},
-		// { name: "Relais1W", label: "Relais 1Wire" , placeholder: "comma separated list of relais number", func: goodcsv},
-		// { name: "PulseCounters", label: "Compteurs Impulsion" , placeholder: "comma separated list of indexes", func: goodcsv},
-		// { name: "TempSensors", label: "Senseurs de Température" , placeholder: "comma separated list of indexes", func: goodcsv},
-		// { name: "VirtualSwitches", label: "Switch Virtuels" , placeholder: "comma separated list of indexes", func: goodcsv}
-	];
+	get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
+		// var credentials = get_device_state(deviceID,  ALTHUE_Svs, 'Credentials',1);
+		var debug  = get_device_state(deviceID,  ALTHUE_Svs, 'Debug',1);
+		var linkok = (credentials !="" ) && (credentials != null)
+		var poll = get_device_state(deviceID,  ALTHUE_Svs, 'RefreshPeriod',1);
+		var ip_address = jsonp.ud.devices[findDeviceIdx(deviceID)].ip;
+		var configs = [
+			// { name: "UserFTP", label: "User pour FTP" , placeholder: "doit etre configure sur le ALTHUE, par default adminftp"},
+			// { name: "PasswordFTP", type:"password", label: "Password pour FTP" , placeholder: "doit etre configure sur le ALTHUE, par default wesftp"},
+			{ name: "NamePrefix", label: "Prefix pour les noms" , placeholder: "Prefix ou vide"},
+			// { name: "AnalogClamps", label: "Pinces Analogiques" , placeholder: "comma separated list of indexes" , func: goodcsv},
+			// { name: "AnalogInputs", label: "Inputs Analogiques" , placeholder: "comma separated list of indexes", func: goodcsv},
+			// { name: "Relais1W", label: "Relais 1Wire" , placeholder: "comma separated list of relais number", func: goodcsv},
+			// { name: "PulseCounters", label: "Compteurs Impulsion" , placeholder: "comma separated list of indexes", func: goodcsv},
+			// { name: "TempSensors", label: "Senseurs de Température" , placeholder: "comma separated list of indexes", func: goodcsv},
+			// { name: "VirtualSwitches", label: "Switch Virtuels" , placeholder: "comma separated list of indexes", func: goodcsv}
+		];
 
-	var htmlConfigs = "";
-	jQuery.each( configs, function(idx,obj) {
-		var value = get_device_state(deviceID,  ALTHUE_Svs, obj.name,1);
-		htmlConfigs += '	\
-					<div class="form-group col-xs-6 col-6">																	\
-						<label for="althue-{0}">{1}</label>		\
-						<input type="{3}" class="form-control" id="althue-{0}" placeholder="{2}" value="{4}">	\
-					</div>																										\
-		'.format(
-			obj.name,
-			obj.label,
-			obj.placeholder,
-			obj.type || "text",
-			value
-		);
+		var htmlConfigs = "";
+		jQuery.each( configs, function(idx,obj) {
+			var value = get_device_state(deviceID,  ALTHUE_Svs, obj.name,1);
+			htmlConfigs += '	\
+						<div class="form-group col-xs-6 col-6">																	\
+							<label for="althue-{0}">{1}</label>		\
+							<input type="{3}" class="form-control" id="althue-{0}" placeholder="{2}" value="{4}">	\
+						</div>																										\
+			'.format(
+				obj.name,
+				obj.label,
+				obj.placeholder,
+				obj.type || "text",
+				value
+			);
+		});
+		var html =
+		'                                                           \
+		  <div id="althue-settings row">                                           \
+			<form class="" id="althue-settings-form">                        \
+						<div class="form-row"> \
+							<div class="form-group col-xs-6 col-6">																	\
+								<label for="althue-ipaddr">IP Addr</label>		\
+								<input type="text" class="form-control" id="althue-ipaddr" placeholder="xx.xx.xx.xx">	\
+							</div>																										\
+							<div class="form-group col-xs-6 col-6">																	\
+								<label for="althue-RefreshPeriod">Polling in sec</label>			\
+								<input type="number" min="1" max="600" class="form-control" id="althue-RefreshPeriod" placeholder="5">	\
+							</div> 																								\
+						</div> 																								\
+						<div class="form-row"> \
+							<div class="form-group col-xs-6 col-6">																	\
+								<label for="althue-username">Link Status</label>		\
+								<div class="form-row"> \
+									<div id="althue-linkstatus" class="col-4 '+(linkok ? 'bg-success' : 'bg-danger')+'"> \
+										<div></div>	\
+									</div> \
+									<div class="col-8"> \
+										<button type="button" id="althue-linkaction" class="btn btn-secondary">Test</button>	\
+									</div> \
+								</div> \
+							</div>			\																							\
+						</div>			\																							\
+						<div class="form-row"> \
+							'+htmlConfigs+'																							\
+						</div>			\																							\
+						<div class="form-row"> \
+							<div class="form-group col-xs-12 col-12">																	\
+								<button id="althue-submit" type="submit" class="btn btn-primary">Submit</button>	\
+							</div>																										\
+						</div>																										\
+					</form>                                                 \
+		  </div>                                                    \
+		'		
+		set_panel_html(html);
+		jQuery( "#althue-linkstatus").height(29);			// required in UI7 
+		jQuery( "#althue-ipaddr" ).val(ip_address);
+		jQuery( "#althue-username" ).val(credentials);
+		jQuery( "#althue-RefreshPeriod" ).val(poll);
+		jQuery( "#althue-linkaction").click( function(e) {
+			get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
+				var action = (credentials!="") ? "UnpairWithHue" : "PairWithHue";
+				var url = buildUPnPActionUrl(deviceID,ALTHUE_Svs,action)
+				jQuery("#althue-linkaction").addClass("disabled")
+				jQuery.ajax({
+					type: "GET",
+					url: url,
+					cache: false,
+				}).done( function(data) {
+					// get real value
+					get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
+						var linkok = (credentials !="" ) && (credentials != null)
+						jQuery( "#althue-linkstatus").removeClass("bg-danger bg-success").addClass(linkok ? 'bg-success' : 'bg-danger')
+					})
+				})
+				.fail(function() {
+					alert('Action Failed!');
+				})
+				.always(function(){
+					jQuery("#althue-linkaction").removeClass("disabled")
+				});
+			})
+		});
+		
+		jQuery( "#althue-settings-form" ).on("submit", function(event) {
+			var bReload = true;
+			event.preventDefault();
+			var ip_address = jQuery( "#althue-ipaddr" ).val();
+			var usr = jQuery( "#althue-username" ).val();
+			// var pwd = jQuery( "#althue-pwd" ).val();
+			var poll = jQuery( "#althue-RefreshPeriod" ).val();
+			
+			// var encode = btoa( "{0}:{1}".format(usr,pwd) );
+			if (goodip(ip_address)) {
+				// saveVar( deviceID,  ALTHUE_Svs, "Credentials", usr, 0 )
+				saveVar( deviceID,  ALTHUE_Svs, "RefreshPeriod", poll, 0 )
+				saveVar( deviceID,  null , "ip", ip_address, 0 )
+				jQuery.each( configs, function(idx,obj) {
+					var val = jQuery("#althue-"+obj.name).val();
+					bReload = bReload && save( deviceID,  ALTHUE_Svs, obj.name, val, jQuery.isFunction(obj.func) ? obj.func : null, 0 )
+				});
+			} else {
+				alert("Invalid IP address")
+				bReload = false;
+			}
+			
+			if (bReload) {
+				jQuery.get(data_request_url+"id=reload");
+				alert("Now reloading Luup engine for the changes to be effective");
+			}
+			// http://ip_address:3480/data_request?id=reload
+			return false;
+		})
 	});
-	var html =
-    '                                                           \
-      <div id="althue-settings">                                           \
-        <form class="row" id="althue-settings-form">                        \
-					<div class="form-group col-xs-6 col-6">																	\
-						<label for="althue-ipaddr">IP Addr</label>		\
-						<input type="text" class="form-control" id="althue-ipaddr" placeholder="xx.xx.xx.xx">	\
-					</div>																										\
-					<div class="form-group col-xs-6 col-6">																	\
-						<label for="althue-RefreshPeriod">Polling in sec</label>			\
-						<input type="number" min="1" max="600" class="form-control" id="althue-RefreshPeriod" placeholder="5">	\
-					</div> 																								\
-					<div class="form-group col-xs-6 col-6">																	\
-						<label for="althue-username">User Name</label>		\
-						<input type="text" class="form-control" id="althue-username" placeholder="User">	\
-					</div>																										\
-					'+htmlConfigs+'																							\
-					<div class="form-group col-xs-12 col-12">																	\
-						<button id="althue-submit" type="submit" class="btn btn-primary">Submit</button>	\
-					</div>																										\
-				</form>                                                 \
-      </div>                                                    \
-    '		
-	set_panel_html(html);
-	// var arr = atob(credentials).split(":");
-	jQuery( "#althue-ipaddr" ).val(ip_address);
-	jQuery( "#althue-username" ).val(credentials);
-	// jQuery( "#althue-pwd" ).val(arr[1]);
-	jQuery( "#althue-RefreshPeriod" ).val(poll);
-		
-	jQuery( "#althue-settings-form" ).on("submit", function(event) {
-		var bReload = true;
-		event.preventDefault();
-		var ip_address = jQuery( "#althue-ipaddr" ).val();
-		var usr = jQuery( "#althue-username" ).val();
-		// var pwd = jQuery( "#althue-pwd" ).val();
-		var poll = jQuery( "#althue-RefreshPeriod" ).val();
-		
-		// var encode = btoa( "{0}:{1}".format(usr,pwd) );
-		if (goodip(ip_address)) {
-			saveVar( deviceID,  ALTHUE_Svs, "Credentials", usr, 0 )
-			saveVar( deviceID,  ALTHUE_Svs, "RefreshPeriod", poll, 0 )
-			saveVar( deviceID,  null , "ip", ip_address, 0 )
-			jQuery.each( configs, function(idx,obj) {
-				var val = jQuery("#althue-"+obj.name).val();
-				bReload = bReload && save( deviceID,  ALTHUE_Svs, obj.name, val, jQuery.isFunction(obj.func) ? obj.func : null, 0 )
-			});
-		} else {
-			alert("Invalid IP address")
-			bReload = false;
-		}
-		
-		if (bReload) {
-			jQuery.get(data_request_url+"id=reload");
-			alert("Now reloading Luup engine for the changes to be effective");
-		}
-		// http://ip_address:3480/data_request?id=reload
-		return false;
-	})
 }
 
 
 //-------------------------------------------------------------
-// Variable saving ( log , then full save )
+// Variable saving 
 //-------------------------------------------------------------
+function get_device_state_async(deviceID,  service, varName, func ) {
+	var url = data_command_url+'id=variableget&DeviceNum='+deviceID+'&serviceId='+service+'&Variable='+varName;
+	jQuery.get(url)
+	.done( function(data) {
+		if (jQuery.isFunction(func)) {
+			(func)(data)
+		}
+	})
+}
+
 function save(deviceID, service, varName, varVal, func, reload) {
 	// reload is optional parameter and defaulted to false
 	if (typeof reload === "undefined" || reload === null) { 

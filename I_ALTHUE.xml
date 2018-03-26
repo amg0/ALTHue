@@ -24,6 +24,22 @@
 		</action>
 
 		<action>
+		  <serviceId>urn:upnp-org:serviceId:althue1</serviceId>
+		  <name>PairWithHue</name>
+		  <run>
+				PairWithHue(lul_device)
+		  </run>
+		</action>
+
+		<action>
+		  <serviceId>urn:upnp-org:serviceId:althue1</serviceId>
+		  <name>UnpairWithHue</name>
+		  <run>
+				UnpairWithHue(lul_device)
+		  </run>
+		</action>
+
+		<action>
 		  <serviceId>urn:upnp-org:serviceId:TemperatureSensor1</serviceId>
 		  <name>GetCurrentTemperature</name>
 		  <run>
@@ -46,5 +62,6 @@
 				UserToggleState(lul_device)
 		  </run>
 		</action>
+		
 	</actionList>
 </implementation>

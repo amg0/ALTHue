@@ -34,5 +34,16 @@
             <argumentList>
             </argumentList>
 		</action>
+        <action>
+            <name>PairWithHue</name>
+            <argumentList>
+            </argumentList>
+		</action>
+        <action>
+            <name>UnpairWithHue</name>
+            <argumentList>
+            </argumentList>
+		</action>
+		
 	</actionList>
 </scpd>
