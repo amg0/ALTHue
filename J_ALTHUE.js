@@ -141,13 +141,14 @@ function ALTHUE_Settings(deviceID) {
 		'		
 		set_panel_html(html);
 		jQuery( "#althue-linkstatus").height(29);			// required in UI7 
+		jQuery( "#althue-linkstatus").data('status',linkok); 
 		jQuery( "#althue-ipaddr" ).val(ip_address);
 		jQuery( "#althue-RefreshPeriod" ).val(poll);
 		jQuery( "#althue-linkaction").click( function(e) {
 			get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
 				var action = (credentials!="") ? "UnpairWithHue" : "PairWithHue";
 				var url = buildUPnPActionUrl(deviceID,ALTHUE_Svs,action)
-				jQuery( "#althue-linkaction").text("...")
+				jQuery("#althue-linkaction").text("...")
 				jQuery("#althue-linkaction").addClass("disabled")
 				jQuery.ajax({
 					type: "GET",
@@ -156,8 +157,14 @@ function ALTHUE_Settings(deviceID) {
 				}).done( function(data) {
 					// get real value
 					get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
+						var oldlinkok = jQuery( "#althue-linkstatus").data('status'); 
 						var linkok = ((credentials !="" ) && (credentials != null)) ? 1 : 0;
+						if (oldlinkok==linkok) {
+							// nochanges
+							alert("The operation did not succeed");
+						}
 						jQuery( "#althue-linkstatus").removeClass("bg-danger bg-success").addClass(map[linkok].bgColor)
+						jQuery( "#althue-linkstatus").data('status',linkok); 
 						jQuery( "#althue-linkaction").text(map[linkok].btnText)
 						jQuery( "#althue-linkstatus-txt").text(map[linkok].txtHelp)
 					})
