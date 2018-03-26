@@ -524,7 +524,7 @@ local function registerNewUser(lul_device)
 	-- must get a new user ID
 	local data,msg = getNewUserID(lul_device)
 	debug(string.format("return data: %s", json.encode(data)))
-	if (data[1].error ~= nil) then
+	if ((data==nil) or (data[1].error ~= nil)) then
 		error("New User is not accepted by the bridge, did you press the Link button on the Bridge ? : " .. data[1].error.description);
 		setVariableIfChanged(ALTHUE_SERVICE, "Credentials", "", lul_device)
 		return false
@@ -540,19 +540,19 @@ local function verifyAccess(lul_device)
 	debug(string.format("verifyAccess(%s)",lul_device))
 	local credentials = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
 	if (isempty(credentials)) then
-		UserMessage(string.format("The plugin is not linked to your Hue Bridge. Proceed with pairing in settings page"),TASK_ERROR)
+		-- UserMessage(string.format("The plugin is not linked to your Hue Bridge. Proceed with pairing in settings page"),TASK_ERROR)
 		return false
 	end
 
 	local data,msg = getTimezones(lul_device)
 	if ( (data==nil) or (tablelength(data)<1) ) then
-		UserMessage(string.format("The plugin is not linked to your Hue Bridge. Proceed with pairing in settings page"),TASK_ERROR)
+		-- UserMessage(string.format("The plugin is not linked to your Hue Bridge. Proceed with pairing in settings page"),TASK_ERROR)
 		return false
 	end
 	debug(string.format("getTimezones returns data: %s", json.encode(data)))
 	
 	if (data[1].error ~= nil) then
-		error("User is not registered to Philips Hue Bridge : " .. data[1].error.description);
+		warning("User is not registered to Philips Hue Bridge : " .. data[1].error.description);
 		return false
 	end
 	
@@ -598,7 +598,7 @@ local function startEngine(lul_device)
 	local data,msg = getHueConfig(lul_device)
 	if (data == nil) then
 		-- Get Hue Config failed
-		UserMessage(string.format("Not able to reach the Hue Bridge (missing ip addr in attributes ?, device:%s, msg:%s",lul_device,msg),TASK_ERROR_PERM)
+		UserMessage(string.format("Not able to reach the Hue Bridge (missing ip addr in attributes ?, device:%s, msg:%s",lul_device,msg),TASK_ERROR)
 		return false
 	end
 	debug(string.format("return data: %s", json.encode(data)))
@@ -608,7 +608,7 @@ local function startEngine(lul_device)
 	setAttrIfChanged("mac", data.mac, lul_device)
 
 	local result = PairWithHue(lul_device)
-	return result
+	return true
 end
 
 function startupDeferred(lul_device)

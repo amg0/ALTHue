@@ -53,7 +53,7 @@ function findDeviceIdx(deviceID)
 //-------------------------------------------------------------	
 function ALTHUE_Donate(deviceID) {
 	var htmlDonate='For those who really like this plugin and feel like it, you can donate what you want here on Paypal. It will not buy you more support not any garantee that this can be maintained or evolve in the future but if you want to show you are happy and would like my kids to transform some of the time I steal from them into some <i>concrete</i> returns, please feel very free ( and absolutely not forced to ) to donate whatever you want.  thank you ! ';
-	htmlDonate+='<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top"><input type="hidden" name="cmd" value="_donations"><input type="hidden" name="business" value="alexis.mermet@free.fr"><input type="hidden" name="lc" value="FR"><input type="hidden" name="item_name" value="Alexis Mermet"><input type="hidden" name="item_number" value="althue"><input type="hidden" name="no_note" value="0"><input type="hidden" name="currency_code" value="EUR"><input type="hidden" name="bn" value="PP-DonationsBF:btn_donateCC_LG.gif:NonHostedGuest"><input type="image" src="https://www.paypalobjects.com/en_US/FR/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!"><img alt="" border="0" src="https://www.paypalobjects.com/fr_FR/i/scr/pixel.gif" width="1" height="1"></form>';
+	htmlDonate+='<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank"><input type="hidden" name="cmd" value="_donations"><input type="hidden" name="business" value="alexis.mermet@free.fr"><input type="hidden" name="lc" value="FR"><input type="hidden" name="item_name" value="Alexis Mermet"><input type="hidden" name="item_number" value="althue"><input type="hidden" name="no_note" value="0"><input type="hidden" name="currency_code" value="EUR"><input type="hidden" name="bn" value="PP-DonationsBF:btn_donateCC_LG.gif:NonHostedGuest"><input type="image" src="https://www.paypalobjects.com/en_US/FR/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!"><img alt="" border="0" src="https://www.paypalobjects.com/fr_FR/i/scr/pixel.gif" width="1" height="1"></form>';
 	var html = '<div>'+htmlDonate+'</div>';
 	set_panel_html(html);
 }
@@ -66,13 +66,17 @@ function ALTHUE_Settings(deviceID) {
 	get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
 		// var credentials = get_device_state(deviceID,  ALTHUE_Svs, 'Credentials',1);
 		var debug  = get_device_state(deviceID,  ALTHUE_Svs, 'Debug',1);
-		var linkok = (credentials !="" ) && (credentials != null)
+		var linkok = ((credentials !="" ) && (credentials != null)) ? 1 : 0;
+		var map = [
+			{btnText:"Pair", bgColor:"bg-danger", txtHelp:"Press Hue Link button"},
+			{btnText:"Unpair", bgColor:"bg-success", txtHelp:"Pairing Success"},			
+		];
 		var poll = get_device_state(deviceID,  ALTHUE_Svs, 'RefreshPeriod',1);
 		var ip_address = jsonp.ud.devices[findDeviceIdx(deviceID)].ip;
 		var configs = [
+			{ name: "NamePrefix", label: "Prefix pour les noms" , placeholder: "Prefix ou vide"},
 			// { name: "UserFTP", label: "User pour FTP" , placeholder: "doit etre configure sur le ALTHUE, par default adminftp"},
 			// { name: "PasswordFTP", type:"password", label: "Password pour FTP" , placeholder: "doit etre configure sur le ALTHUE, par default wesftp"},
-			{ name: "NamePrefix", label: "Prefix pour les noms" , placeholder: "Prefix ou vide"},
 			// { name: "AnalogClamps", label: "Pinces Analogiques" , placeholder: "comma separated list of indexes" , func: goodcsv},
 			// { name: "AnalogInputs", label: "Inputs Analogiques" , placeholder: "comma separated list of indexes", func: goodcsv},
 			// { name: "Relais1W", label: "Relais 1Wire" , placeholder: "comma separated list of relais number", func: goodcsv},
@@ -113,13 +117,13 @@ function ALTHUE_Settings(deviceID) {
 						</div> 																								\
 						<div class="form-row"> \
 							<div class="form-group col-xs-6 col-6">																	\
-								<label for="althue-username">Link Status</label>		\
+								<label for="althue-linkstatus">Link Status</label>		\
 								<div class="form-row"> \
-									<div id="althue-linkstatus" class="col-4 '+(linkok ? 'bg-success' : 'bg-danger')+'"> \
-										<div></div>	\
+									<div id="althue-linkstatus" class="col-4 '+map[linkok].bgColor+'"> \
+										<div id="althue-linkstatus-txt">'+map[linkok].txtHelp+'</div>	\
 									</div> \
 									<div class="col-8"> \
-										<button type="button" id="althue-linkaction" class="btn btn-secondary">Test</button>	\
+										<button type="button" id="althue-linkaction" class="btn btn-sm btn-secondary">'+map[linkok].btnText+'</button>	\
 									</div> \
 								</div> \
 							</div>			\																							\
@@ -138,12 +142,12 @@ function ALTHUE_Settings(deviceID) {
 		set_panel_html(html);
 		jQuery( "#althue-linkstatus").height(29);			// required in UI7 
 		jQuery( "#althue-ipaddr" ).val(ip_address);
-		jQuery( "#althue-username" ).val(credentials);
 		jQuery( "#althue-RefreshPeriod" ).val(poll);
 		jQuery( "#althue-linkaction").click( function(e) {
 			get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
 				var action = (credentials!="") ? "UnpairWithHue" : "PairWithHue";
 				var url = buildUPnPActionUrl(deviceID,ALTHUE_Svs,action)
+				jQuery( "#althue-linkaction").text("...")
 				jQuery("#althue-linkaction").addClass("disabled")
 				jQuery.ajax({
 					type: "GET",
@@ -152,8 +156,10 @@ function ALTHUE_Settings(deviceID) {
 				}).done( function(data) {
 					// get real value
 					get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
-						var linkok = (credentials !="" ) && (credentials != null)
-						jQuery( "#althue-linkstatus").removeClass("bg-danger bg-success").addClass(linkok ? 'bg-success' : 'bg-danger')
+						var linkok = ((credentials !="" ) && (credentials != null)) ? 1 : 0;
+						jQuery( "#althue-linkstatus").removeClass("bg-danger bg-success").addClass(map[linkok].bgColor)
+						jQuery( "#althue-linkaction").text(map[linkok].btnText)
+						jQuery( "#althue-linkstatus-txt").text(map[linkok].txtHelp)
 					})
 				})
 				.fail(function() {
@@ -169,13 +175,9 @@ function ALTHUE_Settings(deviceID) {
 			var bReload = true;
 			event.preventDefault();
 			var ip_address = jQuery( "#althue-ipaddr" ).val();
-			var usr = jQuery( "#althue-username" ).val();
-			// var pwd = jQuery( "#althue-pwd" ).val();
 			var poll = jQuery( "#althue-RefreshPeriod" ).val();
-			
-			// var encode = btoa( "{0}:{1}".format(usr,pwd) );
+
 			if (goodip(ip_address)) {
-				// saveVar( deviceID,  ALTHUE_Svs, "Credentials", usr, 0 )
 				saveVar( deviceID,  ALTHUE_Svs, "RefreshPeriod", poll, 0 )
 				saveVar( deviceID,  null , "ip", ip_address, 0 )
 				jQuery.each( configs, function(idx,obj) {
@@ -191,7 +193,6 @@ function ALTHUE_Settings(deviceID) {
 				jQuery.get(data_request_url+"id=reload");
 				alert("Now reloading Luup engine for the changes to be effective");
 			}
-			// http://ip_address:3480/data_request?id=reload
 			return false;
 		})
 	});
