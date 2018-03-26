@@ -119,10 +119,10 @@ function ALTHUE_Settings(deviceID) {
 							<div class="form-group col-xs-6 col-6">																	\
 								<label for="althue-linkstatus">Link Status</label>		\
 								<div class="form-row"> \
-									<div id="althue-linkstatus" class="col-4 '+map[linkok].bgColor+'"> \
+									<div id="althue-linkstatus" class="col-6 '+map[linkok].bgColor+'"> \
 										<div id="althue-linkstatus-txt">'+map[linkok].txtHelp+'</div>	\
 									</div> \
-									<div class="col-8"> \
+									<div class="col-6"> \
 										<button type="button" id="althue-linkaction" class="btn btn-sm btn-secondary">'+map[linkok].btnText+'</button>	\
 									</div> \
 								</div> \

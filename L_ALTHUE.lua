@@ -16,6 +16,7 @@ local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 30
 local NAME_PREFIX	= "Hue "	-- trailing space needed
 local hostname		= ""
+local MapUID2Index={}
 
 local json = require("dkjson")
 local mime = require('mime')
@@ -386,6 +387,11 @@ local function getTimezones(lul_device)
 	return data,msg
 end
 
+local function getLights(lul_device)
+	local data,msg = ALTHueHttpCall(lul_device,"GET","lights")
+	return data,msg
+end
+
 ------------------------------------------------------------------------------------------------
 -- Http handlers : Communication FROM ALTUI
 -- http://192.168.1.5:3480/data_request?id=lr_ALTHUE_Handler&command=xxx
@@ -591,6 +597,39 @@ function PairWithHue(lul_device)
 	return true
 end
 
+local function SyncLights(lul_device)
+	debug(string.format("SyncLights(%s)",lul_device))
+	local data,msg = getLights(lul_device)
+	if (data~=nil) and (data["1"] ~=nil) then
+		-- for all children device, iterate
+		MapUID2Index={}
+		local child_devices = luup.chdev.start(lul_device);
+		for k,v in pairs(data) do
+			local idx = tonumber(k)
+			luup.chdev.append(
+				lul_device, child_devices,
+				v.uniqueid,					-- children map index is altid
+				NAME_PREFIX..v.name,		-- children map name attribute is device name
+				"urn:schemas-upnp-org:device:BinaryLight:1",	-- children device type
+				"D_BinaryLight1.xml",		-- children D-file
+				"", 						-- children I-file
+				"",							-- params
+				false						-- not embedded
+			)
+			MapUID2Index[ v.uniqueid ]=k
+		end
+		luup.chdev.sync(lul_device, child_devices)	
+	end
+	debug(string.format("MapUID2Index is: %s",json.encode(MapUID2Index)))
+	for k,v in pairs(data) do
+		local childId,child = findChild( lul_device, v.uniqueid )
+		setAttrIfChanged("name", NAME_PREFIX..v.name, childId)
+		setAttrIfChanged("manufacturer", v.manufacturername, childId)
+		setAttrIfChanged("model", v.modelid, childId)
+	end
+	return data,msg
+end
+
 local function startEngine(lul_device)
 	debug(string.format("startEngine(%s)",lul_device))
 	lul_device = tonumber(lul_device)
@@ -602,12 +641,15 @@ local function startEngine(lul_device)
 		return false
 	end
 	debug(string.format("return data: %s", json.encode(data)))
-
 	setAttrIfChanged("manufacturer", data.name, lul_device)
 	setAttrIfChanged("model", data.modelid, lul_device)
 	setAttrIfChanged("mac", data.mac, lul_device)
+	setAttrIfChanged("name", data.name, lul_device)
 
-	local result = PairWithHue(lul_device)
+	if (PairWithHue(lul_device)) then
+		data,msg = SyncLights(lul_device)
+		-- todo , set the attributes, set the states
+	end
 	return true
 end
 
