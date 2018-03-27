@@ -56,12 +56,28 @@
 		</action>
 		
 		<action>
+		  <serviceId>urn:upnp-org:serviceId:Dimming1</serviceId>
+		  <name>SetLoadLevelTarget</name>
+		  <run>
+				UserSetLoadLevelTarget(lul_device,lul_settings.newLoadlevelTarget)
+		  </run>
+		</action>
+
+		<action>
 		  <serviceId>urn:micasaverde-com:serviceId:HaDevice1</serviceId>
 		  <name>ToggleState</name>
 		  <run>
 				UserToggleState(lul_device)
 		  </run>
 		</action>
+
+        <action>
+			<serviceId>urn:micasaverde-com:serviceId:Color1</serviceId>
+            <name>SetColorRGB</name>
+			<run>
+				UserSetColorRGB(lul_device,lul_settings.newColorRGBTarget)
+			</run>            
+        </action>
 		
 	</actionList>
 </implementation>

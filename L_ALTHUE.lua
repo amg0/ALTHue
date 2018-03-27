@@ -13,7 +13,7 @@ local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
 local version		= "v0.02"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
-local DEFAULT_REFRESH = 30
+local DEFAULT_REFRESH = 10
 local NAME_PREFIX	= "Hue "	-- trailing space needed
 local hostname		= ""
 local MapUID2Index={}
@@ -23,66 +23,6 @@ local mime = require('mime')
 local socket = require("socket")
 local http = require("socket.http")
 local ltn12 = require("ltn12")
--- local lom = require("lxp.lom") -- http://matthewwild.co.uk/projects/luaexpat/lom.html
--- local xpath = require("xpath")
-
--- altid is the object ID ( like the relay ID ) on the ALTHUE server
-local childmap = {
-  ["SONDE%s"] = {
-	devtype="urn:schemas-micasaverde-com:device:TemperatureSensor:1",
-	devfile="D_TemperatureSensor1.xml",
-	name="SONDE %s",
-	map="TempSensors" -- user choice in a CSV string 1 to 8 ex:	 2,3
-  },
-  ["ad%s"] = {
-	devtype="urn:schemas-micasaverde-com:device:GenericSensor:1",
-	devfile="D_GenericSensor1.xml",
-	name="ANALOG %s",
-	map="AnalogInputs" -- user choice in a CSV string 1 to 8 ex:  2,3
-  },
-  ["rl%s"] = {
-	devtype="urn:schemas-upnp-org:device:BinaryLight:1",
-	devfile="D_BinaryLight1.xml",
-	name="RELAIS %s",
-	map={1,2} -- hard coded dev 1 and 2
-  },
-  ["rl1w%s"] = {
-	devtype="urn:schemas-upnp-org:device:BinaryLight:1",
-	devfile="D_BinaryLight1.xml",
-	name="RELAIS 1W %s",
-	map="Relais1W"	-- user choice in a CSV string 1 to 8 ex:  2,3
-  },
-  ["in%s"] = {
-	devtype="urn:schemas-upnp-org:device:BinaryLight:1",
-	devfile="D_BinaryLight1.xml",
-	name="ENTREE %s",
-	map={1,2} -- hard coded dev 1 and 2
-  },
-  ["vs%s"] = {
-	devtype="urn:schemas-upnp-org:device:BinaryLight:1",
-	devfile="D_BinaryLight1.xml",
-	name="SWITCH %s",
-	map="VirtualSwitches" -- user choice in a CSV string 1 to 8 ex:	 2,3
-  },
-  ["tic%s"] = {
-	devtype="urn:schemas-micasaverde-com:device:PowerMeter:1",
-	devfile="D_PowerMeter1.xml",
-	name="TIC %s",
-	map={1,2} -- hard coded dev 1 and 2
-  },
-  ["pa%s"] = {
-	devtype="urn:schemas-micasaverde-com:device:PowerMeter:1",
-	devfile="D_PowerMeter1.xml",
-	name="PINCE %s",
-	map="AnalogClamps" -- user choice in a CSV string 1 to 8 ex:  2,3
-  },
-  ["pls%s"] = {
-	devtype="urn:schemas-micasaverde-com:device:PowerMeter:1",
-	devfile="D_PowerMeter1.xml",
-	name="PULSE %s",
-	map="PulseCounters" -- user choice in a CSV string 1 to 8 ex:  2,3
-  }
-}
 
 ------------------------------------------------
 -- Debug --
@@ -347,20 +287,20 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 		-- fail to connect
 	if (request==nil) then
 		error(string.format("failed to connect to %s, http.request returned nil", newUrl))
-		return 0,"failed to connect"
+		return nil,"failed to connect"
 	elseif (code==401) then
 		warning(string.format("Access requires a user/password: %d", code))
-		return 0,"unauthorized access - 401"
+		return nil,"unauthorized access - 401"
 	elseif (code~=200) then
 		warning(string.format("http.request returned a bad code: %d", code))
-		return 0,"unvalid return code:" .. code
+		return nil,"unvalid return code:" .. code
 	end
 
 	-- everything looks good
 	local data = table.concat(result)
 	debug(string.format("request:%s",request))
 	debug(string.format("code:%s",code))
-
+	debug(string.format("data:%s",data or ""))
 	return json.decode(data) ,""
 end
 
@@ -445,27 +385,131 @@ end
 ------------------------------------------------
 -- STARTUP Sequence
 ------------------------------------------------
+local function round(num, numDecimalPlaces)
+  local mult = 10^(numDecimalPlaces or 0)
+  return math.floor(num * mult + 0.5) / mult
+end
+
+local function cie_to_rgb(x, y, brightness)
+	-- //Set to maximum brightness if no custom value was given (Not the slick ECMAScript 6 way for compatibility reasons)
+	x = tonumber(x)
+	y = tonumber(y)
+	brightness = tonumber(brightness)
+	
+	if (brightness == nil) then
+		brightness = 254;
+	end
+
+	local z = 1.0 - x - y;
+	local Y = math.floor( 100 * (brightness / 254)) /100	-- .toFixed(2);
+	local X = (Y / y) * x;
+	local Z = (Y / y) * z;
+
+	-- //Convert to RGB using Wide RGB D65 conversion
+	local red 	=  X * 1.656492 - Y * 0.354851 - Z * 0.255038;
+	local green 	= -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
+	local blue 	=  X * 0.051713 - Y * 0.121364 + Z * 1.011530;
+
+	-- //If red, green or blue is larger than 1.0 set it back to the maximum of 1.0
+	if (red > blue) and (red > green) and (red > 1.0) then
+
+		green = green / red;
+		blue = blue / red;
+		red = 1.0;
+	
+	elseif (green > blue) and (green > red) and (green > 1.0) then
+
+		red = red / green;
+		blue = blue / green;
+		green = 1.0;
+	
+	elseif (blue > red) and (blue > green) and (blue > 1.0) then
+
+		red = red / blue;
+		green = green / blue;
+		blue = 1.0;
+	end
+
+	-- //Reverse gamma correction
+	red 	= (red <= 0.0031308) and (12.92 * red) or (1.0 + 0.055) * (red^(1.0 / 2.4)) - 0.055;
+	green 	= (green <= 0.0031308) and (12.92 * green) or (1.0 + 0.055) * (green^(1.0 / 2.4)) - 0.055;
+	blue 	= (blue <= 0.0031308) and (12.92 * blue) or (1.0 + 0.055) * (blue^(1.0 / 2.4)) - 0.055;
+
+
+	-- //Convert normalized decimal to decimal
+	red 	= round(red * 255);
+	green 	= round(green * 255);
+	blue 	= round(blue * 255);
+
+	-- if (isNaN(red))
+		-- red = 0;
+
+	-- if (isNaN(green))
+		-- green = 0;
+
+	-- if (isNaN(blue))
+		-- blue = 0;
+		
+	return red, green, blue
+end
+
+local function rgb_to_cie(red, green, blue)
+	-- Apply a gamma correction to the RGB values, which makes the color more vivid and more the like the color displayed on the screen of your device
+	red = tonumber(red)
+	green = tonumber(green)
+	blue = tonumber(blue)
+	red 	= (red > 0.04045) and ((red + 0.055) / (1.0 + 0.055))^2.4 or (red / 12.92)
+	green 	= (green > 0.04045) and ((green + 0.055) / (1.0 + 0.055))^2.4 or (green / 12.92)
+	blue 	= (blue > 0.04045) and ((blue + 0.055) / (1.0 + 0.055))^2.4 or (blue / 12.92)
+
+	-- //RGB values to XYZ using the Wide RGB D65 conversion formula
+	local X 		= red * 0.664511 + green * 0.154324 + blue * 0.162028
+	local Y 		= red * 0.283881 + green * 0.668433 + blue * 0.047685
+	local Z 		= red * 0.000088 + green * 0.072310 + blue * 0.986039
+
+	-- //Calculate the xy values from the XYZ values
+	local x1 		= math.floor( 10000 * (X / (X + Y + Z)) )/10000  --.toFixed(4);
+	local y1 		= math.floor( 10000 * (Y / (X + Y + Z)) )/10000  --.toFixed(4);
+
+	-- if (isNaN(x1))
+		-- x1 = 0
+
+	-- if (isNaN(y1))
+		-- y1 = 0
+
+	return x1, y1
+end
+
+function UserSetLoadLevelTarget(lul_device,newValue)
+	debug(string.format("UserSetLoadLevelTarget(%s,%s)",lul_device,newValue))
+	lul_device = tonumber(lul_device)
+	lul_root = getRoot(lul_device)
+	local status = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
+	if (status ~= newValue) then
+		newValue = tonumber(newValue)
+		local bri = math.floor(1+253*newValue/100)
+		local val = (newValue ~= 0)
+		luup.variable_set("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", newValue, lul_device)
+		luup.variable_set("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", newValue, lul_device)
+		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Target", val and "1" or "0", lul_device)
+		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Status", val and "1" or "0", lul_device)
+		local childid = luup.devices[lul_device].id;
+		local hueindex = MapUID2Index[ childid ]
+		if (hueindex ~= nil) then
+			local data,msg = ALTHueHttpCall(
+				lul_root,
+				"PUT",
+				string.format("lights/%s/state",hueindex),
+				string.format('{"on": %s, "bri": %d}',tostring(val),bri)
+			)
+		end
+	end
+end
 
 function UserSetPowerTarget(lul_device,newTargetValue)
-  lul_device = tonumber(lul_device)
-  debug(string.format("UserSetPowerTarget(%s,%s)",lul_device,newTargetValue))
-  local status = luup.variable_get("urn:upnp-org:serviceId:SwitchPower1", "Status", lul_device)
-  if (status ~= newTargetValue) then
-	local val = "ON";
-	if (newTargetValue=="0") then
-	  val = "OFF";
-	end
-	
-	
-	-- altid is the relay ID on the ALTHUE
-	-- local childid = luup.devices[lul_device].id;
-	-- prefix rl1W should be replaced by rl
-	-- childid = string.gsub(childid, "1w", "")
-	-- luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Status", newTargetValue, lul_device)
-	-- local xmldata = ALTHueHttpCall(lul_device,"RL.cgx",childid.."="..val)
-  else
-	debug(string.format("UserSetPowerTarget(%s,%s) - same status, ignoring",lul_device,newTargetValue))
-  end
+	debug(string.format("UserSetPowerTarget(%s,%s)",lul_device,newTargetValue))
+	newTargetValue = tonumber(newTargetValue)
+	UserSetLoadLevelTarget(lul_device, (newTargetValue>0) and "100" or "0" )
 end
 
 function UserToggleState(lul_device)
@@ -473,6 +517,29 @@ function UserToggleState(lul_device)
   local status = luup.variable_get("urn:upnp-org:serviceId:SwitchPower1", "Status", lul_device)
   status = 1-tonumber(status)
   UserSetPowerTarget(lul_device,tostring(status))
+end
+
+function UserSetColorRGB(lul_device,newColorRGBTarget)
+	debug(string.format("UserSetColorRGB(%s,%s)",lul_device,newColorRGBTarget))
+	lul_device = tonumber(lul_device)
+	lul_root = getRoot(lul_device)
+	local parts = newColorRGBTarget:split(',')
+	debug(string.format("RGB: %s",newColorRGBTarget))
+	local x,y = rgb_to_cie(parts[1], parts[2], parts[3])
+	debug(string.format("x:%s y:%s",tostring(x), tostring(y)))
+	local newValue = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
+	local bri = math.floor(1+253*tonumber(newValue)/100)
+	local childid = luup.devices[lul_device].id;
+	local hueindex = MapUID2Index[ childid ]
+	local val = true
+	if (hueindex ~= nil) then
+		local data,msg = ALTHueHttpCall(
+			lul_root,
+			"PUT",
+			string.format("lights/%s/state",hueindex),
+			string.format('{"on": %s, "bri": %d, "xy":[%f,%f]}',tostring(val),bri,x,y)
+		)
+	end	
 end
 
 function getCurrentTemperature(lul_device)
@@ -486,23 +553,36 @@ local function loadALTHueData(lul_device,xmldata)
   return true
 end
 
-function refreshEngineCB(lul_device,norefresh)
-  norefresh = norefresh or false
-  debug(string.format("refreshEngineCB(%s,%s)",lul_device,tostring(norefresh)))
-  lul_device = tonumber(lul_device)
-  local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
-
-  local xmldata = nil --ALTHueHttpCall(lul_device,"")
-  if (xmldata ~= nil) then
-	loadALTHueData(lul_device,xmldata)
-  else
-	UserMessage(string.format("missing ip addr or credentials for device "..lul_device),TASK_ERROR_PERM)
-  end
-
-  debug(string.format("programming next refreshEngineCB(%s) in %s sec",lul_device,period))
-  if (norefresh==false) then
-	luup.call_delay("refreshEngineCB",period,tostring(lul_device))
-  end
+function refreshHueData(lul_device,norefresh)
+	local success=true
+	norefresh = norefresh or false
+	debug(string.format("refreshHueData(%s,%s)",lul_device,tostring(norefresh)))
+	lul_device = tonumber(lul_device)
+	local data,msg = getLights(lul_device)
+	if (data~=nil) and (data["1"] ~=nil) then
+		for k,v in pairs(data) do
+			local idx = tonumber(k)
+			local childId,child = findChild( lul_device, v.uniqueid )
+			local status = (v.state.on == true) and "1" or "0"
+			local bri = math.floor(100 * (v.state.bri-1) / 253)
+			if (v.state.on == false) then
+				bri=0
+			end
+			setVariableIfChanged("urn:upnp-org:serviceId:SwitchPower1", "Status", status, childId )
+			setVariableIfChanged("urn:upnp-org:serviceId:SwitchPower1", "Target", status, childId )
+			setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", bri, childId )
+			setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", bri, childId )
+		end		
+		local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
+		debug(string.format("programming next refreshHueData(%s) in %s sec",lul_device,period))
+		if (norefresh==false) then
+			luup.call_delay("refreshHueData",period,tostring(lul_device))
+		end
+	else
+		success=false
+		warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
+	end
+	return success
 end
 
 ------------------------------------------------
@@ -520,12 +600,6 @@ local function setDebugMode(lul_device,newDebugMode)
   end
 end
 
-local function refreshData(lul_device)
-  lul_device = tonumber(lul_device)
-  debug(string.format("refreshData(%d)",lul_device))
-  refreshEngineCB(lul_device,true)
-end
-
 local function registerNewUser(lul_device)
 	-- must get a new user ID
 	local data,msg = getNewUserID(lul_device)
@@ -537,7 +611,6 @@ local function registerNewUser(lul_device)
 	end
 	-- [{"success":{"username": "83b7780291a6ceffbe0bd049104df"}}]
 	credentials = data[1].success.username
-	setVariableIfChanged(ALTHUE_SERVICE, "IconCode", 100, lul_device)
 	setVariableIfChanged(ALTHUE_SERVICE, "Credentials", credentials, lul_device)
 	return true
 end
@@ -597,120 +670,175 @@ function PairWithHue(lul_device)
 	return true
 end
 
+-- http://192.168.1.32/port_3480/data_request?id=action&output_format=json&DeviceNum=239&serviceId=urn:upnp-org:serviceId:SwitchPower1&action=SetTarget&newTargetValue=1
+
+-- http://192.168.1.32/port_3480/data_request?id=action&output_format=json&DeviceNum=239&serviceId=urn:micasaverde-com:serviceId:Color1&action=SetColorRGB&newColorRGBTarget=242%2C65%2C10
+-- id: action
+-- output_format: json
+-- DeviceNum: 239
+-- serviceId: urn:micasaverde-com:serviceId:Color1
+-- action: SetColorRGB
+-- newColorRGBTarget: 242,65,10
+-- {
+                        -- "Service": "urn:micasaverde-com:serviceId:Color1",
+                        -- "Action": "SetColorRGB",
+                        -- "ActionArgumentName": "newColorRGBTarget"
+-- }
+					
+-- POST http://192.168.1.32/port_3480/data_request?
+-- id: variableset
+-- DeviceNum: 239
+-- Variable: CurrentColor
+-- Value: 0=0,1=0,2=241,3=65,4=10
+-- serviceId: urn:micasaverde-com:serviceId:Color1
+-- dummy: x
+
+
 local function SyncLights(lul_device)
+	local LightTypes = {
+		["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight1.xml" },
+		["Color temperature light"] = 	{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
+		["Color light"] = 				{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
+		["Dimmable light"] = 			{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
+		["Default"] = 					{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" }
+	}
+	 
 	debug(string.format("SyncLights(%s)",lul_device))
 	local data,msg = getLights(lul_device)
 	if (data~=nil) and (data["1"] ~=nil) then
 		-- for all children device, iterate
 		MapUID2Index={}
+		local vartable = {
+			"urn:upnp-org:serviceId:SwitchPower1,Status=0",
+			"urn:upnp-org:serviceId:SwitchPower1,Target=0",
+			"urn:upnp-org:serviceId:Dimming1,LoadLevelStatus=0",
+			"urn:upnp-org:serviceId:Dimming1,LoadLevelTarget=0",
+		}
 		local child_devices = luup.chdev.start(lul_device);
 		for k,v in pairs(data) do
 			local idx = tonumber(k)
+			local mapentry = LightTypes[ v.type ] or LightTypes[ "Default" ] 
 			luup.chdev.append(
 				lul_device, child_devices,
 				v.uniqueid,					-- children map index is altid
 				NAME_PREFIX..v.name,		-- children map name attribute is device name
-				"urn:schemas-upnp-org:device:BinaryLight:1",	-- children device type
-				"D_BinaryLight1.xml",		-- children D-file
+				mapentry.dtype,				-- children device type
+				mapentry.dfile,				-- children D-file
 				"", 						-- children I-file
-				"",							-- params
+				table.concat(vartable, "\n"),	-- params
 				false						-- not embedded
 			)
 			MapUID2Index[ v.uniqueid ]=k
 		end
 		luup.chdev.sync(lul_device, child_devices)	
+		
+		debug(string.format("MapUID2Index is: %s",json.encode(MapUID2Index)))
+		for k,v in pairs(data) do
+			local childId,child = findChild( lul_device, v.uniqueid )
+			setAttrIfChanged("name", NAME_PREFIX..v.name, childId)
+			setAttrIfChanged("manufacturer", v.manufacturername, childId)
+			setAttrIfChanged("model", v.modelid, childId)
+		end
+	else
+		warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
+		return false
 	end
-	debug(string.format("MapUID2Index is: %s",json.encode(MapUID2Index)))
-	for k,v in pairs(data) do
-		local childId,child = findChild( lul_device, v.uniqueid )
-		setAttrIfChanged("name", NAME_PREFIX..v.name, childId)
-		setAttrIfChanged("manufacturer", v.manufacturername, childId)
-		setAttrIfChanged("model", v.modelid, childId)
-	end
-	return data,msg
+	return (data~=nil)
 end
 
 local function startEngine(lul_device)
 	debug(string.format("startEngine(%s)",lul_device))
+	local success=false
 	lul_device = tonumber(lul_device)
 
 	local data,msg = getHueConfig(lul_device)
+	debug(string.format("return data: %s", json.encode(data or "nil")))
 	if (data == nil) then
 		-- Get Hue Config failed
 		UserMessage(string.format("Not able to reach the Hue Bridge (missing ip addr in attributes ?, device:%s, msg:%s",lul_device,msg),TASK_ERROR)
-		return false
+		return success --false
+	else
+		setAttrIfChanged("manufacturer", data.name, lul_device)
+		setAttrIfChanged("model", data.modelid, lul_device)
+		setAttrIfChanged("mac", data.mac, lul_device)
+		setAttrIfChanged("name", data.name, lul_device)
 	end
-	debug(string.format("return data: %s", json.encode(data)))
-	setAttrIfChanged("manufacturer", data.name, lul_device)
-	setAttrIfChanged("model", data.modelid, lul_device)
-	setAttrIfChanged("mac", data.mac, lul_device)
-	setAttrIfChanged("name", data.name, lul_device)
 
 	if (PairWithHue(lul_device)) then
-		data,msg = SyncLights(lul_device)
-		-- todo , set the attributes, set the states
+		success = SyncLights(lul_device)
+		success = success and refreshHueData(lul_device)
 	end
-	return true
+	return success
 end
 
 function startupDeferred(lul_device)
-  lul_device = tonumber(lul_device)
-  log("startupDeferred, called on behalf of device:"..lul_device)
+	lul_device = tonumber(lul_device)
+	log("startupDeferred, called on behalf of device:"..lul_device)
 
-  local debugmode = getSetVariable(ALTHUE_SERVICE, "Debug", lul_device, "0")
-  local oldversion = getSetVariable(ALTHUE_SERVICE, "Version", lul_device, "")
-  local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
-  local credentials	 = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
-  local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
-  local iconCode = getSetVariable(ALTHUE_SERVICE,"IconCode", lul_device, "0")
-  -- local ipaddr = luup.attr_get ('ip', lul_device )
+	local debugmode = getSetVariable(ALTHUE_SERVICE, "Debug", lul_device, "0")
+	local oldversion = getSetVariable(ALTHUE_SERVICE, "Version", lul_device, "")
+	local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
+	local credentials	 = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
+	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
+	local iconCode = getSetVariable(ALTHUE_SERVICE,"IconCode", lul_device, "0")
 
-  if (debugmode=="1") then
+	-- sanitize
+	if (tonumber(period)==0) then
+		setVariableIfChanged(ALTHUE_SERVICE, "RefreshPeriod", DEFAULT_REFRESH, lul_device)
+		period=DEFAULT_REFRESH
+	end
+
+	if (debugmode=="1") then
 	DEBUG_MODE = true
 	UserMessage("Enabling debug mode for device:"..lul_device,TASK_BUSY)
-  end
-  local major,minor = 0,0
-  local tbl={}
-
-  if (oldversion~=nil) then
-	if (oldversion ~= "") then
-	  major,minor = string.match(oldversion,"v(%d+)%.(%d+)")
-	  major,minor = tonumber(major),tonumber(minor)
-	  debug ("Plugin version: "..version.." Device's Version is major:"..major.." minor:"..minor)
-
-	  newmajor,newminor = string.match(version,"v(%d+)%.(%d+)")
-	  newmajor,newminor = tonumber(newmajor),tonumber(newminor)
-	  debug ("Device's New Version is major:"..newmajor.." minor:"..newminor)
-
-	  -- force the default in case of upgrade
-	  if ( (newmajor>major) or ( (newmajor==major) and (newminor>minor) ) ) then
-		log ("Version upgrade => Reseting Plugin config to default and FTP uploading the *.CGX file on the ALTHUE server")
-
-	  end
-	else
-	  log ("New installation")
 	end
-	luup.variable_set(ALTHUE_SERVICE, "Version", version, lul_device)
-  end
+	local major,minor = 0,0
+	local tbl={}
 
-  -- start handlers
-  -- createChildren(lul_device)
-  -- start engine
-  local success = false
-  success = startEngine(lul_device)
+	if (oldversion~=nil) then
+		if (oldversion ~= "") then
+		  major,minor = string.match(oldversion,"v(%d+)%.(%d+)")
+		  major,minor = tonumber(major),tonumber(minor)
+		  debug ("Plugin version: "..version.." Device's Version is major:"..major.." minor:"..minor)
 
-  -- NOTHING to start
-  if( luup.version_branch == 1 and luup.version_major == 7) then
-	if (success == true) then
-	  luup.set_failure(0,lul_device)  -- should be 0 in UI7
-	else
-	  luup.set_failure(1,lul_device)  -- should be 0 in UI7
+		  newmajor,newminor = string.match(version,"v(%d+)%.(%d+)")
+		  newmajor,newminor = tonumber(newmajor),tonumber(newminor)
+		  debug ("Device's New Version is major:"..newmajor.." minor:"..newminor)
+
+		  -- force the default in case of upgrade
+		  if ( (newmajor>major) or ( (newmajor==major) and (newminor>minor) ) ) then
+			-- log ("Version upgrade => Reseting Plugin config to default")
+		  end
+		else
+		  log ("New installation")
+		end
+		luup.variable_set(ALTHUE_SERVICE, "Version", version, lul_device)
 	end
-  else
-	luup.set_failure(false,lul_device)	-- should be 0 in UI7
-  end
 
-  log("startup completed")
+	local ipaddr = luup.attr_get ('ip', lul_device )
+	if (ipaddr:trim()=="") then
+		UserMessage(string.format("The IP address of the Hue bridge is not set in the plugin attributes"),TASK_ERROR_PERM)
+		setVariableIfChanged(ALTHUE_SERVICE, "IconCode", 0, lul_device)
+		luup.set_failure(1,lul_device)  -- should be 0 in UI7
+		log("startup not completed successfully")
+		return 
+	end
+	
+	local success = startEngine(lul_device)
+
+	-- report success or failure
+	if( luup.version_branch == 1 and luup.version_major == 7) then
+		if (success == true) then
+			luup.set_failure(0,lul_device)  -- should be 0 in UI7
+		else
+			luup.set_failure(1,lul_device)  -- should be 0 in UI7
+		end
+	else
+		luup.set_failure(false,lul_device)	-- should be 0 in UI7
+	end
+
+	setVariableIfChanged(ALTHUE_SERVICE, "IconCode", success and "100" or "0", lul_device)
+	log("startup completed")
 end
 
 ------------------------------------------------
