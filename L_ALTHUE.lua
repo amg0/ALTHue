@@ -480,6 +480,21 @@ local function rgb_to_cie(red, green, blue)
 	return x1, y1
 end
 
+local function HueLampSetState(lul_device,body)
+	debug(string.format("HueLampSetState(%s,%s)",lul_device,body))
+	lul_device = tonumber(lul_device)
+	local lul_root = getRoot(lul_device)
+	local childid = luup.devices[lul_device].id;
+	local hueindex = MapUID2Index[ childid ]
+	if (hueindex ~= nil) then
+		local data,msg = ALTHueHttpCall(
+			lul_root,
+			"PUT",
+			string.format("lights/%s/state",hueindex),
+			body)
+	end	
+end
+
 function UserSetLoadLevelTarget(lul_device,newValue)
 	debug(string.format("UserSetLoadLevelTarget(%s,%s)",lul_device,newValue))
 	lul_device = tonumber(lul_device)
@@ -493,16 +508,8 @@ function UserSetLoadLevelTarget(lul_device,newValue)
 		luup.variable_set("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", newValue, lul_device)
 		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Target", val and "1" or "0", lul_device)
 		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Status", val and "1" or "0", lul_device)
-		local childid = luup.devices[lul_device].id;
-		local hueindex = MapUID2Index[ childid ]
-		if (hueindex ~= nil) then
-			local data,msg = ALTHueHttpCall(
-				lul_root,
-				"PUT",
-				string.format("lights/%s/state",hueindex),
-				string.format('{"on": %s, "bri": %d}',tostring(val),bri)
-			)
-		end
+
+		HueLampSetState(lul_device,string.format('{"on": %s, "bri": %d}',tostring(val),bri))
 	end
 end
 
@@ -519,38 +526,38 @@ function UserToggleState(lul_device)
   UserSetPowerTarget(lul_device,tostring(status))
 end
 
-function UserSetColorRGB(lul_device,newColorRGBTarget)
-	debug(string.format("UserSetColorRGB(%s,%s)",lul_device,newColorRGBTarget))
-	lul_device = tonumber(lul_device)
-	lul_root = getRoot(lul_device)
-	local parts = newColorRGBTarget:split(',')
-	debug(string.format("RGB: %s",newColorRGBTarget))
-	local x,y = rgb_to_cie(parts[1], parts[2], parts[3])
-	debug(string.format("x:%s y:%s",tostring(x), tostring(y)))
+-- Warm White: Wx
+-- Cool White: Dx
+-- Where x is between 0 and 255.
+function UserSetColor(lul_device,newColorTarget)
+	debug(string.format("UserSetColor(%s,%s)",lul_device,newColorTarget))
+	local warmcool = string.sub(newColorTarget, 1, 1)
+	local value = tonumber(string.sub(newColorTarget, 2))
+	local range = math.floor((500-153)/2)	-- min K and max K supported,  middle is mid point W0 or D0
+	local mid = math.floor( (500+153)/2 )
+	local dir = (warmcool=="D") and -1 or 1
+	local offset = math.floor(value * range/255)
 	local newValue = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
 	local bri = math.floor(1+253*tonumber(newValue)/100)
-	local childid = luup.devices[lul_device].id;
-	local hueindex = MapUID2Index[ childid ]
-	local val = true
-	if (hueindex ~= nil) then
-		local data,msg = ALTHueHttpCall(
-			lul_root,
-			"PUT",
-			string.format("lights/%s/state",hueindex),
-			string.format('{"on": %s, "bri": %d, "xy":[%f,%f]}',tostring(val),bri,x,y)
-		)
-	end	
+	local body = string.format('{"on":true, "bri": %d, "ct":%s}', bri, tostring( mid + dir*offset ) )
+	HueLampSetState(lul_device,body)
+end
+
+function UserSetColorRGB(lul_device,newColorRGBTarget)
+	debug(string.format("UserSetColorRGB(%s,%s)",lul_device,newColorRGBTarget))
+	local parts = newColorRGBTarget:split(',')
+	local x,y = rgb_to_cie(parts[1], parts[2], parts[3])
+	debug(string.format("RGB: %s => x:%s y:%s",newColorRGBTarget, tostring(x), tostring(y)))
+	local newValue = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
+	local bri = math.floor(1+253*tonumber(newValue)/100)
+	local body = string.format('{"on": true, "bri": %d, "xy":[%f,%f]}',bri,x,y)
+	HueLampSetState(lul_device,body)
 end
 
 function getCurrentTemperature(lul_device)
   lul_device = tonumber(lul_device)
   debug(string.format("getCurrentTemperature(%d)",lul_device))
   return luup.variable_get("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", lul_device)
-end
-
-local function loadALTHueData(lul_device,xmldata)
-  debug(string.format("loadALTHueData(%s) xml=%s",lul_device,xmldata))
-  return true
 end
 
 function refreshHueData(lul_device,norefresh)

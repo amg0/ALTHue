@@ -78,6 +78,12 @@
 				UserSetColorRGB(lul_device,lul_settings.newColorRGBTarget)
 			</run>            
         </action>
-		
+        <action>
+			<serviceId>urn:micasaverde-com:serviceId:Color1</serviceId>
+            <name>SetColor</name>
+			<run>
+				UserSetColor(lul_device,lul_settings.newColorTarget)
+			</run>            
+        </action>
 	</actionList>
 </implementation>
