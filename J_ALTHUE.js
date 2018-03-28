@@ -263,12 +263,17 @@ function ALTHUE_Settings(deviceID) {
 			})
 			jQuery('.althue-ipselect').click(function(e) {
 				var ip = jQuery(this).text();
-				jQuery("#althue-ipaddr").val(ip);
+				jQuery("#althue-ipaddr").val(ip).trigger('change');
 			});
 		})
 		jQuery( "#althue-linkstatus").height(29);			// required in UI7 
 		jQuery( "#althue-linkstatus").data('status',linkok); 
-		jQuery( "#althue-ipaddr" ).val(ip_address);
+		jQuery( "#althue-ipaddr" ).val(ip_address).change( function(e) {
+			var ip_address = jQuery( "#althue-ipaddr" ).val().trim()
+			if (goodip(ip_address)) {
+				saveVar( deviceID,  null , "ip", ip_address, 0 )
+			}
+		})
 		jQuery( "#althue-RefreshPeriod" ).val(poll);
 		jQuery( "#althue-linkaction").click( function(e) {
 			get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {

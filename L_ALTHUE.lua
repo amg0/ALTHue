@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.1"
+local version		= "v0.2"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
 local NAME_PREFIX	= "Hue "	-- trailing space needed
@@ -847,7 +847,6 @@ local function startEngine(lul_device)
 	debug(string.format("startEngine(%s)",lul_device))
 	local success=false
 	lul_device = tonumber(lul_device)
-	luup.register_handler('myALTHUE_Handler','ALTHUE_Handler')
 
 	local data,msg = getHueConfig(lul_device)
 	debug(string.format("return data: %s", json.encode(data or "nil")))
@@ -910,6 +909,8 @@ function startupDeferred(lul_device)
 		luup.variable_set(ALTHUE_SERVICE, "Version", version, lul_device)
 	end
 
+	luup.register_handler('myALTHUE_Handler','ALTHUE_Handler')
+
 	local ipaddr = luup.attr_get ('ip', lul_device )
 	if (ipaddr:trim()=="") then
 		UserMessage(string.format("The IP address of the Hue bridge is not set in the plugin attributes"),TASK_ERROR_PERM)
@@ -920,6 +921,7 @@ function startupDeferred(lul_device)
 	end
 	
 	local success = startEngine(lul_device)
+	setVariableIfChanged(ALTHUE_SERVICE, "IconCode", success and "100" or "0", lul_device)
 
 	-- report success or failure
 	if( luup.version_branch == 1 and luup.version_major == 7) then
@@ -932,7 +934,6 @@ function startupDeferred(lul_device)
 		luup.set_failure(false,lul_device)	-- should be 0 in UI7
 	end
 
-	setVariableIfChanged(ALTHUE_SERVICE, "IconCode", success and "100" or "0", lul_device)
 	log("startup completed")
 end
 
