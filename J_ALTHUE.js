@@ -9,17 +9,8 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 
 //-------------------------------------------------------------
-// wes  Plugin javascript Tabs
+// ALTHUE  Plugin javascript Tabs
 //-------------------------------------------------------------
-var ALTHUE_Svs = 'urn:upnp-org:serviceId:althue1';
-var ip_address = data_request_url;
-
-function goodip(ip)
-{
-	// @duiffie contribution
-	var reg = new RegExp('^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(:\\d{1,5})?$', 'i');
-	return(reg.test(ip));
-}
 
 if (typeof String.prototype.format == 'undefined') {
 	String.prototype.format = function()
@@ -38,74 +29,155 @@ if (typeof String.prototype.format == 'undefined') {
 	};
 };
 
-function findDeviceIdx(deviceID) 
-{
-	//jsonp.ud.devices
-    for(var i=0; i<jsonp.ud.devices.length; i++) {
-        if (jsonp.ud.devices[i].id == deviceID) 
-			return i;
-    }
-	return null;
-}
+var ALTHUE = (function() {
+	return {
+		ALTHUE_Svs : 'urn:upnp-org:serviceId:althue1',
 
-function array2Table(arr,idcolumn,viscols,caption,cls,htmlid,bResponsive) {
-	var html="";
-	var idcolumn = idcolumn || 'id';
-	var viscols = viscols || [idcolumn];
-	var responsive = ((bResponsive==null) || (bResponsive==true)) ? 'table-responsive-OFF' : ''
+		//-------------------------------------------------------------
+		// Helper functions to build URLs to call VERA code from JS
+		//-------------------------------------------------------------
 
-	if ( (arr) && ($.isArray(arr) && (arr.length>0)) ) {
-		var display_order = [];
-		var keys= Object.keys(arr[0]);
-		$.each(viscols,function(k,v) {
-			if ($.inArray(v,keys)!=-1) {
-				display_order.push(v);
-			}
-		});
-		$.each(keys,function(k,v) {
-			if ($.inArray(v,viscols)==-1) {
-				display_order.push(v);
-			}
-		});
+		buildAttributeSetUrl : function( deviceID, varName, varValue){
+			var urlHead = '' + data_request_url + 'id=variableset&DeviceNum='+deviceID+'&Variable='+varName+'&Value='+varValue;
+			return urlHead;
+		},
 
-		var bFirst=true;
-		html+="<table id='{1}' class='table {2} table-sm table-hover table-striped {0}'>".format(cls || '', htmlid || 'altui-grid' , responsive );
-		if (caption)
-			html += "<caption>{0}</caption>".format(caption)
-		$.each(arr, function(idx,obj) {
-			if (bFirst) {
-				html+="<thead>"
-				html+="<tr>"
-				$.each(display_order,function(_k,k) {
-					html+="<th style='text-transform: capitalize;' data-column-id='{0}' {1} {2}>".format(
-						k,
-						(k==idcolumn) ? "data-identifier='true'" : "",
-						"data-visible='{0}'".format( $.inArray(k,viscols)!=-1 )
-					)
-					html+=k;
-					html+="</th>"
+		buildUPnPActionUrl : function(deviceID,service,action,params)
+		{
+			var urlHead = data_request_url +'id=action&output_format=json&DeviceNum='+deviceID+'&serviceId='+service+'&action='+action;//'&newTargetValue=1';
+			if (params != undefined) {
+				jQuery.each(params, function(index,value) {
+					urlHead = urlHead+"&"+index+"="+value;
 				});
-				html+="</tr>"
-				html+="</thead>"
-				html+="<tbody>"
-				bFirst=false;
 			}
-			html+="<tr>"
-			$.each(display_order,function(_k,k) {
-				html+="<td>"
-				html+=(obj[k]!=undefined) ? obj[k] : '';
-				html+="</td>"
-			});
-			html+="</tr>"
-		});
-		html+="</tbody>"
-		html+="</table>";
-	}
-	else
-		html +="<div>{0}</div>".format(_T("No data to display"))
+			return urlHead;
+		},
 
-	return html;
-};
+		buildHandlerUrl: function(deviceID,command,params)
+		{
+			//http://192.168.1.5:3480/data_request?id=lr_IPhone_Handler
+			params = params || []
+			var urlHead = data_request_url +'id=lr_ALTHUE_Handler&command='+command+'&DeviceNum='+deviceID;
+			jQuery.each(params, function(index,value) {
+				urlHead = urlHead+"&"+index+"="+encodeURIComponent(value);
+			});
+			return encodeURI(urlHead);
+		},
+
+		//-------------------------------------------------------------
+		// Variable saving 
+		//-------------------------------------------------------------
+		saveVar : function(deviceID,  service, varName, varVal, reload) {
+			if (service) {
+				set_device_state(deviceID, service, varName, varVal, 0);	// lost in case of luup restart
+			} else {
+				jQuery.get( this.buildAttributeSetUrl( deviceID, varName, varVal) );
+			}
+		},
+		save : function(deviceID, service, varName, varVal, func, reload) {
+			// reload is optional parameter and defaulted to false
+			if (typeof reload === "undefined" || reload === null) { 
+				reload = false; 
+			}
+
+			if ((!func) || func(varVal)) {
+				//set_device_state(deviceID,  ipx800_Svs, varName, varVal);
+				this.saveVar(deviceID,  service, varName, varVal, reload)
+				jQuery('#althue-' + varName).css('color', 'black');
+				return true;
+			} else {
+				jQuery('#althue-' + varName).css('color', 'red');
+				alert(varName+':'+varVal+' is not correct');
+			}
+			return false;
+		},
+		
+		get_device_state_async: function(deviceID,  service, varName, func ) {
+			var url = data_command_url+'id=variableget&DeviceNum='+deviceID+'&serviceId='+service+'&Variable='+varName;
+			jQuery.get(url)
+			.done( function(data) {
+				if (jQuery.isFunction(func)) {
+					(func)(data)
+				}
+			})
+		},
+		
+		findDeviceIdx:function(deviceID) 
+		{
+			//jsonp.ud.devices
+			for(var i=0; i<jsonp.ud.devices.length; i++) {
+				if (jsonp.ud.devices[i].id == deviceID) 
+					return i;
+			}
+			return null;
+		},
+		
+		goodip : function(ip) {
+			// @duiffie contribution
+			var reg = new RegExp('^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(:\\d{1,5})?$', 'i');
+			return(reg.test(ip));
+		},
+		
+		array2Table : function(arr,idcolumn,viscols,caption,cls,htmlid,bResponsive) {
+			var html="";
+			var idcolumn = idcolumn || 'id';
+			var viscols = viscols || [idcolumn];
+			var responsive = ((bResponsive==null) || (bResponsive==true)) ? 'table-responsive-OFF' : ''
+
+			if ( (arr) && ($.isArray(arr) && (arr.length>0)) ) {
+				var display_order = [];
+				var keys= Object.keys(arr[0]);
+				$.each(viscols,function(k,v) {
+					if ($.inArray(v,keys)!=-1) {
+						display_order.push(v);
+					}
+				});
+				$.each(keys,function(k,v) {
+					if ($.inArray(v,viscols)==-1) {
+						display_order.push(v);
+					}
+				});
+
+				var bFirst=true;
+				html+="<table id='{1}' class='table {2} table-sm table-hover table-striped {0}'>".format(cls || '', htmlid || 'altui-grid' , responsive );
+				if (caption)
+					html += "<caption>{0}</caption>".format(caption)
+				$.each(arr, function(idx,obj) {
+					if (bFirst) {
+						html+="<thead>"
+						html+="<tr>"
+						$.each(display_order,function(_k,k) {
+							html+="<th style='text-transform: capitalize;' data-column-id='{0}' {1} {2}>".format(
+								k,
+								(k==idcolumn) ? "data-identifier='true'" : "",
+								"data-visible='{0}'".format( $.inArray(k,viscols)!=-1 )
+							)
+							html+=k;
+							html+="</th>"
+						});
+						html+="</tr>"
+						html+="</thead>"
+						html+="<tbody>"
+						bFirst=false;
+					}
+					html+="<tr>"
+					$.each(display_order,function(_k,k) {
+						html+="<td>"
+						html+=(obj[k]!=undefined) ? obj[k] : '';
+						html+="</td>"
+					});
+					html+="</tr>"
+				});
+				html+="</tbody>"
+				html+="</table>";
+			}
+			else
+				html +="<div>{0}</div>".format("No data to display")
+
+			return html;		
+		}
+	}
+})(window)
 	
 //-------------------------------------------------------------
 // Device TAB : Donate
@@ -121,7 +193,7 @@ function ALTHUE_Donate(deviceID) {
 // Device TAB : Info
 //-------------------------------------------------------------	
 function ALTHUE_Information(deviceID) {
-	var url = buildHandlerUrl(deviceID,"config",{url:''})
+	var url = ALTHUE.buildHandlerUrl(deviceID,"config",{url:''})
 	$.get(url).done(function(data) {
 		var model = []
 		jQuery.each( data.lights, function(idx,light) {
@@ -135,7 +207,7 @@ function ALTHUE_Information(deviceID) {
 				reachable:light.state.reachable,
 			})
 		})
-		var html = array2Table(model,'id',[],'My Hue Lights','ALTHue-cls','ALTHue-lightstbl',false)
+		var html = ALTHUE.array2Table(model,'id',[],'My Hue Lights','ALTHue-cls','ALTHue-lightstbl',false)
 
 		model = []
 		jQuery.each( data.sensors, function(idx,item) {
@@ -149,7 +221,7 @@ function ALTHUE_Information(deviceID) {
 				lastupdated:item.state.lastupdated,
 			})
 		})
-		html += array2Table(model,'id',[],'My Hue Sensors','ALTHue-cls','ALTHue-sensorstbl',false)
+		html += ALTHUE.array2Table(model,'id',[],'My Hue Sensors','ALTHue-cls','ALTHue-sensorstbl',false)
 
 		set_panel_html(html);
 	})
@@ -159,7 +231,7 @@ function ALTHUE_Information(deviceID) {
 // Device TAB : Dump Json
 //-------------------------------------------------------------	
 function ALTHUE_Dump(deviceID) {
-	var url = buildHandlerUrl(deviceID,"config","")
+	var url = ALTHUE.buildHandlerUrl(deviceID,"config","")
 	$.get(url).done(function(data) {
 		var html=''
 		var html = '<pre>'+JSON.stringify(data,null,2)+'</pre>';
@@ -172,31 +244,23 @@ function ALTHUE_Dump(deviceID) {
 //-------------------------------------------------------------	
 
 function ALTHUE_Settings(deviceID) {
-	get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
-		// var credentials = get_device_state(deviceID,  ALTHUE_Svs, 'Credentials',1);
-		var debug  = get_device_state(deviceID,  ALTHUE_Svs, 'Debug',1);
+	ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
+		// var credentials = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials',1);
+		var debug  = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, 'Debug',1);
 		var linkok = ((credentials !="" ) && (credentials != null)) ? 1 : 0;
 		var map = [
 			{btnText:"Pair", bgColor:"bg-danger", txtHelp:"Press Hue Link button"},
 			{btnText:"Unpair", bgColor:"bg-success", txtHelp:"Pairing Success"},			
 		];
-		var poll = get_device_state(deviceID,  ALTHUE_Svs, 'RefreshPeriod',1);
-		var ip_address = jsonp.ud.devices[findDeviceIdx(deviceID)].ip;
+		var poll = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, 'RefreshPeriod',1);
+		var ip_address = jsonp.ud.devices[ALTHUE.findDeviceIdx(deviceID)].ip;
 		var configs = [
 			{ name: "NamePrefix", label: "Prefix pour les noms" , placeholder: "Prefix ou vide"},
-			// { name: "UserFTP", label: "User pour FTP" , placeholder: "doit etre configure sur le ALTHUE, par default adminftp"},
-			// { name: "PasswordFTP", type:"password", label: "Password pour FTP" , placeholder: "doit etre configure sur le ALTHUE, par default wesftp"},
-			// { name: "AnalogClamps", label: "Pinces Analogiques" , placeholder: "comma separated list of indexes" , func: goodcsv},
-			// { name: "AnalogInputs", label: "Inputs Analogiques" , placeholder: "comma separated list of indexes", func: goodcsv},
-			// { name: "Relais1W", label: "Relais 1Wire" , placeholder: "comma separated list of relais number", func: goodcsv},
-			// { name: "PulseCounters", label: "Compteurs Impulsion" , placeholder: "comma separated list of indexes", func: goodcsv},
-			// { name: "TempSensors", label: "Senseurs de Température" , placeholder: "comma separated list of indexes", func: goodcsv},
-			// { name: "VirtualSwitches", label: "Switch Virtuels" , placeholder: "comma separated list of indexes", func: goodcsv}
 		];
 
 		var htmlConfigs = "";
 		jQuery.each( configs, function(idx,obj) {
-			var value = get_device_state(deviceID,  ALTHUE_Svs, obj.name,1);
+			var value = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, obj.name,1);
 			htmlConfigs += '	\
 						<div class="form-group col-xs-6 col-6">																	\
 							<label for="althue-{0}">{1}</label>		\
@@ -270,15 +334,15 @@ function ALTHUE_Settings(deviceID) {
 		jQuery( "#althue-linkstatus").data('status',linkok); 
 		jQuery( "#althue-ipaddr" ).val(ip_address).change( function(e) {
 			var ip_address = jQuery( "#althue-ipaddr" ).val().trim()
-			if (goodip(ip_address)) {
-				saveVar( deviceID,  null , "ip", ip_address, 0 )
+			if (ALTHUE.goodip(ip_address)) {
+				ALTHUE.saveVar( deviceID,  null , "ip", ip_address, 0 )
 			}
 		})
 		jQuery( "#althue-RefreshPeriod" ).val(poll);
 		jQuery( "#althue-linkaction").click( function(e) {
-			get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
+			ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
 				var action = (credentials!="") ? "UnpairWithHue" : "PairWithHue";
-				var url = buildUPnPActionUrl(deviceID,ALTHUE_Svs,action)
+				var url = ALTHUE.buildUPnPActionUrl(deviceID,ALTHUE_Svs2,action)
 				jQuery("#althue-linkaction").text("...")
 				jQuery("#althue-linkaction").addClass("disabled")
 				jQuery.ajax({
@@ -287,7 +351,7 @@ function ALTHUE_Settings(deviceID) {
 					cache: false,
 				}).done( function(data) {
 					// get real value
-					get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
+					ALTHUE.get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
 						var oldlinkok = jQuery( "#althue-linkstatus").data('status'); 
 						var linkok = ((credentials !="" ) && (credentials != null)) ? 1 : 0;
 						if (oldlinkok==linkok) {
@@ -315,12 +379,12 @@ function ALTHUE_Settings(deviceID) {
 			var ip_address = jQuery( "#althue-ipaddr" ).val();
 			var poll = jQuery( "#althue-RefreshPeriod" ).val();
 
-			if (goodip(ip_address)) {
-				saveVar( deviceID,  ALTHUE_Svs, "RefreshPeriod", poll, 0 )
-				saveVar( deviceID,  null , "ip", ip_address, 0 )
+			if (ALTHUE.goodip(ip_address)) {
+				ALTHUE.saveVar( deviceID,  ALTHUE_Svs, "RefreshPeriod", poll, 0 )
+				ALTHUE.saveVar( deviceID,  null , "ip", ip_address, 0 )
 				jQuery.each( configs, function(idx,obj) {
 					var val = jQuery("#althue-"+obj.name).val();
-					bReload = bReload && save( deviceID,  ALTHUE_Svs, obj.name, val, jQuery.isFunction(obj.func) ? obj.func : null, 0 )
+					bReload = bReload && ALTHUE.save( deviceID,  ALTHUE_Svs, obj.name, val, jQuery.isFunction(obj.func) ? obj.func : null, 0 )
 				});
 			} else {
 				alert("Invalid IP address")
@@ -337,81 +401,4 @@ function ALTHUE_Settings(deviceID) {
 }
 
 
-//-------------------------------------------------------------
-// Variable saving 
-//-------------------------------------------------------------
-function get_device_state_async(deviceID,  service, varName, func ) {
-	var url = data_command_url+'id=variableget&DeviceNum='+deviceID+'&serviceId='+service+'&Variable='+varName;
-	jQuery.get(url)
-	.done( function(data) {
-		if (jQuery.isFunction(func)) {
-			(func)(data)
-		}
-	})
-}
-
-function save(deviceID, service, varName, varVal, func, reload) {
-	// reload is optional parameter and defaulted to false
-	if (typeof reload === "undefined" || reload === null) { 
-		reload = false; 
-	}
-
-    if ((!func) || func(varVal)) {
-        //set_device_state(deviceID,  ipx800_Svs, varName, varVal);
-		saveVar(deviceID,  service, varName, varVal, reload)
-        jQuery('#althue-' + varName).css('color', 'black');
-		return true;
-    } else {
-        jQuery('#althue-' + varName).css('color', 'red');
-		alert(varName+':'+varVal+' is not correct');
-    }
-	return false;
-}
-
-function saveVar(deviceID,  service, varName, varVal, reload)
-{
-	if (service) {
-		set_device_state(deviceID, service, varName, varVal, 0);	// lost in case of luup restart
-	} else {
-		jQuery.get( buildAttributeSetUrl( deviceID, varName, varVal) );
-	}
-}
-
-function goodcsv(v)
-{
-	var reg = new RegExp('^[0-9]*(,[0-9]+)*$', 'i');
-	return(reg.test(v));
-}
-
-//-------------------------------------------------------------
-// Helper functions to build URLs to call VERA code from JS
-//-------------------------------------------------------------
-
-function buildAttributeSetUrl( deviceID, varName, varValue)
-{
-	var urlHead = '' + ip_address + 'id=variableset&DeviceNum='+deviceID+'&Variable='+varName+'&Value='+varValue;
-	return urlHead;
-}
-
-function buildUPnPActionUrl(deviceID,service,action,params)
-{
-	var urlHead = ip_address +'id=action&output_format=json&DeviceNum='+deviceID+'&serviceId='+service+'&action='+action;//'&newTargetValue=1';
-	if (params != undefined) {
-		jQuery.each(params, function(index,value) {
-			urlHead = urlHead+"&"+index+"="+value;
-		});
-	}
-	return urlHead;
-}
-
-function buildHandlerUrl(deviceID,command,params)
-{
-	//http://192.168.1.5:3480/data_request?id=lr_IPhone_Handler
-	params = params || []
-	var urlHead = ip_address +'id=lr_ALTHUE_Handler&command='+command+'&DeviceNum='+deviceID;
-	jQuery.each(params, function(index,value) {
-		urlHead = urlHead+"&"+index+"="+encodeURIComponent(value);
-	});
-	return encodeURI(urlHead);
-}
 
