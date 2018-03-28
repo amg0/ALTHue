@@ -29,10 +29,226 @@ if (typeof String.prototype.format == 'undefined') {
 	};
 };
 
-var ALTHUE = (function() {
-	return {
-		ALTHUE_Svs : 'urn:upnp-org:serviceId:althue1',
+var ALTHUE = (function(api) {
+	var ALTHUE_Svs = 'urn:upnp-org:serviceId:althue1';
 
+	//-------------------------------------------------------------
+	// Device TAB : Dump Json
+	//-------------------------------------------------------------	
+	function ALTHUE_Dump(deviceID) {
+		var url = ALTHUE.buildHandlerUrl(deviceID,"config","")
+		$.get(url).done(function(data) {
+			var html=''
+			var html = '<pre>'+JSON.stringify(data,null,2)+'</pre>';
+			set_panel_html(html);
+		})
+	};
+	
+	//-------------------------------------------------------------
+	// Device TAB : Info
+	//-------------------------------------------------------------	
+	function ALTHUE_Information(deviceID) {
+		var url = ALTHUE.buildHandlerUrl(deviceID,"config",{url:''})
+		$.get(url).done(function(data) {
+			var model = []
+			jQuery.each( data.lights, function(idx,light) {
+				model.push({
+					id:idx,
+					type: light.type,
+					name: light.name,
+					manufacturer:light.manufacturername,
+					model: light.modelid,
+					swversion:light.swversion,
+					reachable:light.state.reachable,
+				})
+			})
+			var html = ALTHUE.array2Table(model,'id',[],'My Hue Lights','ALTHue-cls','ALTHue-lightstbl',false)
+
+			model = []
+			jQuery.each( data.sensors, function(idx,item) {
+				model.push({
+					id:idx,
+					type: item.type,
+					name: item.name,
+					manufacturer:item.manufacturername,
+					model: item.modelid,
+					swversion:item.swversion,
+					lastupdated:item.state.lastupdated,
+				})
+			})
+			html += ALTHUE.array2Table(model,'id',[],'My Hue Sensors','ALTHue-cls','ALTHue-sensorstbl',false)
+
+			set_panel_html(html);
+		})
+	};
+
+	//-------------------------------------------------------------
+	// Device TAB : Settings
+	//-------------------------------------------------------------	
+
+	function ALTHUE_Settings(deviceID) {
+		ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
+			// var credentials = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials',1);
+			var debug  = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, 'Debug',1);
+			var linkok = ((credentials !="" ) && (credentials != null)) ? 1 : 0;
+			var map = [
+				{btnText:"Pair", bgColor:"bg-danger", txtHelp:"Press Hue Link button"},
+				{btnText:"Unpair", bgColor:"bg-success", txtHelp:"Pairing Success"},			
+			];
+			var poll = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, 'RefreshPeriod',1);
+			var ip_address = jsonp.ud.devices[ALTHUE.findDeviceIdx(deviceID)].ip;
+			var configs = [
+				{ name: "NamePrefix", label: "Prefix pour les noms" , placeholder: "Prefix ou vide"},
+			];
+
+			var htmlConfigs = "";
+			jQuery.each( configs, function(idx,obj) {
+				var value = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, obj.name,1);
+				htmlConfigs += '	\
+							<div class="form-group col-xs-6 col-6">																	\
+								<label for="althue-{0}">{1}</label>		\
+								<input type="{3}" class="form-control" id="althue-{0}" placeholder="{2}" value="{4}">	\
+							</div>																										\
+				'.format(
+					obj.name,
+					obj.label,
+					obj.placeholder,
+					obj.type || "text",
+					value
+				);
+			});
+			var html =
+			'                                                           \
+			  <div id="althue-settings row">                                           \
+				<form class="" id="althue-settings-form">                        \
+							<div class="form-row"> \
+								<div class="form-group col-xs-6 col-6">																	\
+									<label for="althue-ipaddr">IP Addr</label>		\
+									<div class="input-group">\
+									  <input type="text" class="form-control" id="althue-ipaddr" placeholder="xx.xx.xx.xx">\
+									  <div class="input-group-append">\
+										<button id="althue-discovery-btn" class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Discovery meethue.com</button>\
+										<div class="dropdown-menu">\
+										</div>\
+									  </div>\
+									</div>\
+								</div>																										\
+								<div class="form-group col-xs-6 col-6">																	\
+									<label for="althue-RefreshPeriod">Polling in sec</label>			\
+									<input type="number" min="1" max="600" class="form-control" id="althue-RefreshPeriod" placeholder="5">	\
+								</div> 																								\
+							</div> 																								\
+							<div class="form-row"> \
+								<div class="form-group col-xs-6 col-6">																	\
+									<label for="althue-linkstatus">Link Status</label>		\
+									<div class="form-row"> \
+										<div id="althue-linkstatus" class="col-6 '+map[linkok].bgColor+'"> \
+											<div id="althue-linkstatus-txt">'+map[linkok].txtHelp+'</div>	\
+										</div> \
+										<div class="col-6"> \
+											<button type="button" id="althue-linkaction" class="btn btn-sm btn-secondary">'+map[linkok].btnText+'</button>	\
+										</div> \
+									</div> \
+								</div>			\																							\
+							</div>			\																							\
+							<div class="form-row"> \
+								'+htmlConfigs+'																							\
+							</div>			\																							\
+							<div class="form-row"> \
+								<div class="form-group col-xs-12 col-12">																	\
+									<button id="althue-submit" type="submit" class="btn btn-primary">Submit</button>	\
+								</div>																										\
+							</div>																										\
+						</form>                                                 \
+			  </div>                                                    \
+			'		
+			set_panel_html(html);
+			jQuery.get("https://www.meethue.com/api/nupnp").done( function(data) {
+				var dropdown = jQuery("#althue-discovery-btn").parent().find("div.dropdown-menu")
+				jQuery.each(data, function(idx,item) {
+					jQuery(dropdown).append( '<a class="althue-ipselect dropdown-item" href="javascript:void(0);">'+item.internalipaddress+'</a>' )
+				})
+				jQuery('.althue-ipselect').click(function(e) {
+					var ip = jQuery(this).text();
+					jQuery("#althue-ipaddr").val(ip).trigger('change');
+				});
+			})
+			jQuery( "#althue-linkstatus").height(29);			// required in UI7 
+			jQuery( "#althue-linkstatus").data('status',linkok); 
+			jQuery( "#althue-ipaddr" ).val(ip_address).change( function(e) {
+				var ip_address = jQuery( "#althue-ipaddr" ).val().trim()
+				if (ALTHUE.goodip(ip_address)) {
+					ALTHUE.saveVar( deviceID,  null , "ip", ip_address, 0 )
+				}
+			})
+			jQuery( "#althue-RefreshPeriod" ).val(poll);
+			jQuery( "#althue-linkaction").click( function(e) {
+				ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
+					var action = (credentials!="") ? "UnpairWithHue" : "PairWithHue";
+					var url = ALTHUE.buildUPnPActionUrl(deviceID,ALTHUE_Svs2,action)
+					jQuery("#althue-linkaction").text("...")
+					jQuery("#althue-linkaction").addClass("disabled")
+					jQuery.ajax({
+						type: "GET",
+						url: url,
+						cache: false,
+					}).done( function(data) {
+						// get real value
+						ALTHUE.get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
+							var oldlinkok = jQuery( "#althue-linkstatus").data('status'); 
+							var linkok = ((credentials !="" ) && (credentials != null)) ? 1 : 0;
+							if (oldlinkok==linkok) {
+								// nochanges
+								alert("The operation did not succeed");
+							}
+							jQuery( "#althue-linkstatus").removeClass("bg-danger bg-success").addClass(map[linkok].bgColor)
+							jQuery( "#althue-linkstatus").data('status',linkok); 
+							jQuery( "#althue-linkaction").text(map[linkok].btnText)
+							jQuery( "#althue-linkstatus-txt").text(map[linkok].txtHelp)
+						})
+					})
+					.fail(function() {
+						alert('Action Failed!');
+					})
+					.always(function(){
+						jQuery("#althue-linkaction").removeClass("disabled")
+					});
+				})
+			});
+			
+			jQuery( "#althue-settings-form" ).on("submit", function(event) {
+				var bReload = true;
+				event.preventDefault();
+				var ip_address = jQuery( "#althue-ipaddr" ).val();
+				var poll = jQuery( "#althue-RefreshPeriod" ).val();
+
+				if (ALTHUE.goodip(ip_address)) {
+					ALTHUE.saveVar( deviceID,  ALTHUE_Svs, "RefreshPeriod", poll, 0 )
+					ALTHUE.saveVar( deviceID,  null , "ip", ip_address, 0 )
+					jQuery.each( configs, function(idx,obj) {
+						var val = jQuery("#althue-"+obj.name).val();
+						bReload = bReload && ALTHUE.save( deviceID,  ALTHUE_Svs, obj.name, val, jQuery.isFunction(obj.func) ? obj.func : null, 0 )
+					});
+				} else {
+					alert("Invalid IP address")
+					bReload = false;
+				}
+				
+				if (bReload) {
+					jQuery.get(data_request_url+"id=reload");
+					alert("Now reloading Luup engine for the changes to be effective");
+				}
+				return false;
+			})
+		});
+	};
+	
+	var myModule = {
+		ALTHUE_Svs 	: ALTHUE_Svs,
+		Dump 		: ALTHUE_Dump,
+		Settings 	: ALTHUE_Settings,
+		Information : ALTHUE_Information,
+		
 		//-------------------------------------------------------------
 		// Helper functions to build URLs to call VERA code from JS
 		//-------------------------------------------------------------
@@ -177,7 +393,8 @@ var ALTHUE = (function() {
 			return html;		
 		}
 	}
-})(window)
+	return myModule;
+})(api)
 	
 //-------------------------------------------------------------
 // Device TAB : Donate
@@ -189,216 +406,9 @@ function ALTHUE_Donate(deviceID) {
 	set_panel_html(html);
 }
 
-//-------------------------------------------------------------
-// Device TAB : Info
-//-------------------------------------------------------------	
-function ALTHUE_Information(deviceID) {
-	var url = ALTHUE.buildHandlerUrl(deviceID,"config",{url:''})
-	$.get(url).done(function(data) {
-		var model = []
-		jQuery.each( data.lights, function(idx,light) {
-			model.push({
-				id:idx,
-				type: light.type,
-				name: light.name,
-				manufacturer:light.manufacturername,
-				model: light.modelid,
-				swversion:light.swversion,
-				reachable:light.state.reachable,
-			})
-		})
-		var html = ALTHUE.array2Table(model,'id',[],'My Hue Lights','ALTHue-cls','ALTHue-lightstbl',false)
 
-		model = []
-		jQuery.each( data.sensors, function(idx,item) {
-			model.push({
-				id:idx,
-				type: item.type,
-				name: item.name,
-				manufacturer:item.manufacturername,
-				model: item.modelid,
-				swversion:item.swversion,
-				lastupdated:item.state.lastupdated,
-			})
-		})
-		html += ALTHUE.array2Table(model,'id',[],'My Hue Sensors','ALTHue-cls','ALTHue-sensorstbl',false)
 
-		set_panel_html(html);
-	})
-}
 
-//-------------------------------------------------------------
-// Device TAB : Dump Json
-//-------------------------------------------------------------	
-function ALTHUE_Dump(deviceID) {
-	var url = ALTHUE.buildHandlerUrl(deviceID,"config","")
-	$.get(url).done(function(data) {
-		var html=''
-		var html = '<pre>'+JSON.stringify(data,null,2)+'</pre>';
-		set_panel_html(html);
-	})
-}
-
-//-------------------------------------------------------------
-// Device TAB : Settings
-//-------------------------------------------------------------	
-
-function ALTHUE_Settings(deviceID) {
-	ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
-		// var credentials = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials',1);
-		var debug  = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, 'Debug',1);
-		var linkok = ((credentials !="" ) && (credentials != null)) ? 1 : 0;
-		var map = [
-			{btnText:"Pair", bgColor:"bg-danger", txtHelp:"Press Hue Link button"},
-			{btnText:"Unpair", bgColor:"bg-success", txtHelp:"Pairing Success"},			
-		];
-		var poll = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, 'RefreshPeriod',1);
-		var ip_address = jsonp.ud.devices[ALTHUE.findDeviceIdx(deviceID)].ip;
-		var configs = [
-			{ name: "NamePrefix", label: "Prefix pour les noms" , placeholder: "Prefix ou vide"},
-		];
-
-		var htmlConfigs = "";
-		jQuery.each( configs, function(idx,obj) {
-			var value = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, obj.name,1);
-			htmlConfigs += '	\
-						<div class="form-group col-xs-6 col-6">																	\
-							<label for="althue-{0}">{1}</label>		\
-							<input type="{3}" class="form-control" id="althue-{0}" placeholder="{2}" value="{4}">	\
-						</div>																										\
-			'.format(
-				obj.name,
-				obj.label,
-				obj.placeholder,
-				obj.type || "text",
-				value
-			);
-		});
-		var html =
-		'                                                           \
-		  <div id="althue-settings row">                                           \
-			<form class="" id="althue-settings-form">                        \
-						<div class="form-row"> \
-							<div class="form-group col-xs-6 col-6">																	\
-								<label for="althue-ipaddr">IP Addr</label>		\
-								<div class="input-group">\
-								  <input type="text" class="form-control" id="althue-ipaddr" placeholder="xx.xx.xx.xx">\
-								  <div class="input-group-append">\
-									<button id="althue-discovery-btn" class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Discovery meethue.com</button>\
-									<div class="dropdown-menu">\
-									</div>\
-								  </div>\
-								</div>\
-							</div>																										\
-							<div class="form-group col-xs-6 col-6">																	\
-								<label for="althue-RefreshPeriod">Polling in sec</label>			\
-								<input type="number" min="1" max="600" class="form-control" id="althue-RefreshPeriod" placeholder="5">	\
-							</div> 																								\
-						</div> 																								\
-						<div class="form-row"> \
-							<div class="form-group col-xs-6 col-6">																	\
-								<label for="althue-linkstatus">Link Status</label>		\
-								<div class="form-row"> \
-									<div id="althue-linkstatus" class="col-6 '+map[linkok].bgColor+'"> \
-										<div id="althue-linkstatus-txt">'+map[linkok].txtHelp+'</div>	\
-									</div> \
-									<div class="col-6"> \
-										<button type="button" id="althue-linkaction" class="btn btn-sm btn-secondary">'+map[linkok].btnText+'</button>	\
-									</div> \
-								</div> \
-							</div>			\																							\
-						</div>			\																							\
-						<div class="form-row"> \
-							'+htmlConfigs+'																							\
-						</div>			\																							\
-						<div class="form-row"> \
-							<div class="form-group col-xs-12 col-12">																	\
-								<button id="althue-submit" type="submit" class="btn btn-primary">Submit</button>	\
-							</div>																										\
-						</div>																										\
-					</form>                                                 \
-		  </div>                                                    \
-		'		
-		set_panel_html(html);
-		jQuery.get("https://www.meethue.com/api/nupnp").done( function(data) {
-			var dropdown = jQuery("#althue-discovery-btn").parent().find("div.dropdown-menu")
-			jQuery.each(data, function(idx,item) {
-				jQuery(dropdown).append( '<a class="althue-ipselect dropdown-item" href="javascript:void(0);">'+item.internalipaddress+'</a>' )
-			})
-			jQuery('.althue-ipselect').click(function(e) {
-				var ip = jQuery(this).text();
-				jQuery("#althue-ipaddr").val(ip).trigger('change');
-			});
-		})
-		jQuery( "#althue-linkstatus").height(29);			// required in UI7 
-		jQuery( "#althue-linkstatus").data('status',linkok); 
-		jQuery( "#althue-ipaddr" ).val(ip_address).change( function(e) {
-			var ip_address = jQuery( "#althue-ipaddr" ).val().trim()
-			if (ALTHUE.goodip(ip_address)) {
-				ALTHUE.saveVar( deviceID,  null , "ip", ip_address, 0 )
-			}
-		})
-		jQuery( "#althue-RefreshPeriod" ).val(poll);
-		jQuery( "#althue-linkaction").click( function(e) {
-			ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
-				var action = (credentials!="") ? "UnpairWithHue" : "PairWithHue";
-				var url = ALTHUE.buildUPnPActionUrl(deviceID,ALTHUE_Svs2,action)
-				jQuery("#althue-linkaction").text("...")
-				jQuery("#althue-linkaction").addClass("disabled")
-				jQuery.ajax({
-					type: "GET",
-					url: url,
-					cache: false,
-				}).done( function(data) {
-					// get real value
-					ALTHUE.get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
-						var oldlinkok = jQuery( "#althue-linkstatus").data('status'); 
-						var linkok = ((credentials !="" ) && (credentials != null)) ? 1 : 0;
-						if (oldlinkok==linkok) {
-							// nochanges
-							alert("The operation did not succeed");
-						}
-						jQuery( "#althue-linkstatus").removeClass("bg-danger bg-success").addClass(map[linkok].bgColor)
-						jQuery( "#althue-linkstatus").data('status',linkok); 
-						jQuery( "#althue-linkaction").text(map[linkok].btnText)
-						jQuery( "#althue-linkstatus-txt").text(map[linkok].txtHelp)
-					})
-				})
-				.fail(function() {
-					alert('Action Failed!');
-				})
-				.always(function(){
-					jQuery("#althue-linkaction").removeClass("disabled")
-				});
-			})
-		});
-		
-		jQuery( "#althue-settings-form" ).on("submit", function(event) {
-			var bReload = true;
-			event.preventDefault();
-			var ip_address = jQuery( "#althue-ipaddr" ).val();
-			var poll = jQuery( "#althue-RefreshPeriod" ).val();
-
-			if (ALTHUE.goodip(ip_address)) {
-				ALTHUE.saveVar( deviceID,  ALTHUE_Svs, "RefreshPeriod", poll, 0 )
-				ALTHUE.saveVar( deviceID,  null , "ip", ip_address, 0 )
-				jQuery.each( configs, function(idx,obj) {
-					var val = jQuery("#althue-"+obj.name).val();
-					bReload = bReload && ALTHUE.save( deviceID,  ALTHUE_Svs, obj.name, val, jQuery.isFunction(obj.func) ? obj.func : null, 0 )
-				});
-			} else {
-				alert("Invalid IP address")
-				bReload = false;
-			}
-			
-			if (bReload) {
-				jQuery.get(data_request_url+"id=reload");
-				alert("Now reloading Luup engine for the changes to be effective");
-			}
-			return false;
-		})
-	});
-}
 
 
 

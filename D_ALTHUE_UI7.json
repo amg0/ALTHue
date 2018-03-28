@@ -184,7 +184,7 @@
 		"TopNavigationTab": "1",
 		"TabType": "javascript",
 		"ScriptName": "J_ALTHUE.js",
-		"Function": "ALTHUE_Settings"
+		"Function": "ALTHUE.Settings"
 	},
 	{
       "Label": {
@@ -235,7 +235,7 @@
 		"Position": "7",
 		"TabType": "javascript",
 		"ScriptName": "J_ALTUI.js",
-		"Function": "ALTHUE_Information"
+		"Function": "ALTHUE.Information"
 	},
 	{
 		"Label": {
@@ -245,7 +245,7 @@
 		"Position": "8",
 		"TabType": "javascript",
 		"ScriptName": "J_ALTUI.js",
-		"Function": "ALTHUE_Dump"
+		"Function": "ALTHUE.Dump"
 	},
 	{
 		"Label": {
