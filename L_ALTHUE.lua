@@ -11,12 +11,24 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.02"
+local version		= "v0.1"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
 local NAME_PREFIX	= "Hue "	-- trailing space needed
 local hostname		= ""
 local MapUID2Index={}
+local LightTypes = {
+	["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight1.xml" },
+	["Color temperature light"] = 	{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
+	["Color light"] = 				{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
+	["Dimmable light"] = 			{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
+	["Default"] = 					{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" }
+}
+local SensorTypes = {
+	["ZLLTemperature"] = 	{  dtype="urn:schemas-micasaverde-com:device:TemperatureSensor:1" , dfile="D_TemperatureSensor1.xml" , vartable={"urn:upnp-org:serviceId:TemperatureSensor1,CurrentTemperature=0"} },
+	["ZLLPresence"] = 		{  dtype="urn:schemas-micasaverde-com:device:MotionSensor:1" , dfile="D_MotionSensor1.xml" , vartable={"urn:upnp-org:serviceId:SecuritySensor1,Tripped=0"} },
+	["ZLLLightLevel"] = 	{  dtype="urn:schemas-micasaverde-com:device:LightSensor:1" , dfile="D_LightSensor1.xml" , vartable={"urn:micasaverde-com:serviceId:LightSensor1,CurrentLevel=0"} }
+}
 
 local json = require("dkjson")
 local mime = require('mime')
@@ -332,6 +344,11 @@ local function getLights(lul_device)
 	return data,msg
 end
 
+local function getSensors(lul_device)
+	local data,msg = ALTHueHttpCall(lul_device,"GET","sensors")
+	return data,msg
+end
+
 ------------------------------------------------------------------------------------------------
 -- Http handlers : Communication FROM ALTUI
 -- http://192.168.1.5:3480/data_request?id=lr_ALTHUE_Handler&command=xxx
@@ -372,7 +389,14 @@ function myALTHUE_Handler(lul_request, lul_parameters, lul_outputformat)
 	  ["default"] =
 	  function(params)
 		return "default handler / not successful", "text/plain"
-	  end
+	  end,
+	  
+	  ["config"] =
+	  function(params)
+		local url = lul_parameters["url"] or ""
+		local data,msg = ALTHueHttpCall(deviceID,"GET",url)
+		return json.encode(data or {}), "application/json"
+	  end  
   }
   -- actual call
   lul_html , mime_type = switch(command,action)(lul_parameters)
@@ -560,11 +584,23 @@ function getCurrentTemperature(lul_device)
   return luup.variable_get("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", lul_device)
 end
 
+	-- ["ZLLTemperature"] = 	{  dtype="urn:schemas-micasaverde-com:device:TemperatureSensor:1" , dfile="D_TemperatureSensor1.xml" , vartable={"urn:upnp-org:serviceId:TemperatureSensor1,CurrentTemperature=0"} },
+	-- ["ZLLPresence"] = 		{  dtype="urn:schemas-micasaverde-com:device:MotionSensor:1" , dfile="D_MotionSensor1.xml" , vartable={"urn:upnp-org:serviceId:SecuritySensor1,Tripped=0"} },
+	-- ["ZLLLightLevel"] = 
+	
 function refreshHueData(lul_device,norefresh)
 	local success=true
 	norefresh = norefresh or false
 	debug(string.format("refreshHueData(%s,%s)",lul_device,tostring(norefresh)))
 	lul_device = tonumber(lul_device)
+	
+	-- calculate zone diff
+	local tmp_time = os.time()
+	local d1 = os.date("*t",  tmp_time)
+	local d2 = os.date("!*t", tmp_time)
+	d1.isdst = false
+	local zone_diff = os.difftime(os.time(d1), os.time(d2))
+
 	local data,msg = getLights(lul_device)
 	if (data~=nil) and (data["1"] ~=nil) then
 		for k,v in pairs(data) do
@@ -580,14 +616,49 @@ function refreshHueData(lul_device,norefresh)
 			setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", bri, childId )
 			setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", bri, childId )
 		end		
-		local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
-		debug(string.format("programming next refreshHueData(%s) in %s sec",lul_device,period))
-		if (norefresh==false) then
-			luup.call_delay("refreshHueData",period,tostring(lul_device))
-		end
 	else
 		success=false
 		warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
+	end
+	if (success) then
+		data,msg = getSensors(lul_device)
+		if (data~=nil) and (data["1"] ~=nil) then
+			for k,v in pairs(data) do
+				local idx = tonumber(k)
+				local childId,child = findChild( lul_device, v.uniqueid )
+				if (childId) then
+				
+					local convertedTimestamp = nil
+					local pattern = "(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)"
+					local runyear, runmonth, runday, runhour, runminute, runseconds = v.state.lastupdated:match(pattern)
+					if (runyear~= nil) then
+						convertedTimestamp = os.time({year = runyear, month = runmonth, day = runday, hour = runhour, min = runminute, sec = runseconds + zone_diff})
+					end
+					
+					if (v.config.battery ~= nil) then
+						setVariableIfChanged("urn:micasaverde-com:serviceId:HaDevice1", "BatteryLevel", v.config.battery , childId )
+						setVariableIfChanged("urn:micasaverde-com:serviceId:HaDevice1", "BatteryDate", convertedTimestamp or "", childId )
+					end
+					if (v.type == "ZLLTemperature") then
+						setVariableIfChanged("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", v.state.temperature/100, childId )
+					elseif (v.type == "ZLLPresence") then
+						setVariableIfChanged("urn:micasaverde-com:serviceId:SecuritySensor1", "Tripped", (v.state.presence == true) and "1" or "0" , childId )
+						setVariableIfChanged("urn:micasaverde-com:serviceId:SecuritySensor1", "LastTrip", convertedTimestamp or "" , childId )
+					elseif (v.type == "ZLLLightLevel") then
+						setVariableIfChanged("urn:micasaverde-com:serviceId:LightSensor1", "CurrentLevel", v.state.lightlevel, childId )
+					end
+				end
+			end		
+		else
+			success=false
+			warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
+		end
+	end
+	
+	if (norefresh==false) then
+		local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
+		debug(string.format("programming next refreshHueData(%s) in %s sec",lul_device,period))
+		luup.call_delay("refreshHueData",period,tostring(lul_device))
 	end
 	return success
 end
@@ -677,41 +748,35 @@ function PairWithHue(lul_device)
 	return true
 end
 
--- http://192.168.1.32/port_3480/data_request?id=action&output_format=json&DeviceNum=239&serviceId=urn:upnp-org:serviceId:SwitchPower1&action=SetTarget&newTargetValue=1
+local function SyncSensors(lul_device,data,child_devices)
+	debug(string.format("SyncSensors(%s)",lul_device))
+	if (data~=nil) and (data["1"] ~=nil) then
+		for k,v in pairs(data) do
+			local idx = tonumber(k)
+			local mapentry = SensorTypes[ v.type ]
+			if (mapentry~=nil) and (v.uniqueid~=nil) then -- warning daylight sensor has no unique ID
+				debug(string.format("Simulation Create Child type:%s vuniqueID:%s mapentry:%s",v.type,v.uniqueid,json.encode(mapentry)))
+				luup.chdev.append(
+					lul_device, child_devices,
+					v.uniqueid,					-- children map index is altid
+					NAME_PREFIX..v.name,		-- children map name attribute is device name
+					mapentry.dtype,				-- children device type
+					mapentry.dfile,				-- children D-file
+					"", 						-- children I-file
+					table.concat(mapentry.vartable, "\n"),	-- params
+					false						-- not embedded
+				)
+				MapUID2Index[ v.uniqueid ]=k
+			end
+		end	
+	else
+		warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
+		return false
+	end
+end
 
--- http://192.168.1.32/port_3480/data_request?id=action&output_format=json&DeviceNum=239&serviceId=urn:micasaverde-com:serviceId:Color1&action=SetColorRGB&newColorRGBTarget=242%2C65%2C10
--- id: action
--- output_format: json
--- DeviceNum: 239
--- serviceId: urn:micasaverde-com:serviceId:Color1
--- action: SetColorRGB
--- newColorRGBTarget: 242,65,10
--- {
-                        -- "Service": "urn:micasaverde-com:serviceId:Color1",
-                        -- "Action": "SetColorRGB",
-                        -- "ActionArgumentName": "newColorRGBTarget"
--- }
-					
--- POST http://192.168.1.32/port_3480/data_request?
--- id: variableset
--- DeviceNum: 239
--- Variable: CurrentColor
--- Value: 0=0,1=0,2=241,3=65,4=10
--- serviceId: urn:micasaverde-com:serviceId:Color1
--- dummy: x
-
-
-local function SyncLights(lul_device)
-	local LightTypes = {
-		["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight1.xml" },
-		["Color temperature light"] = 	{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
-		["Color light"] = 				{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
-		["Dimmable light"] = 			{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
-		["Default"] = 					{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" }
-	}
-	 
+local function SyncLights(lul_device,data,child_devices)	 
 	debug(string.format("SyncLights(%s)",lul_device))
-	local data,msg = getLights(lul_device)
 	if (data~=nil) and (data["1"] ~=nil) then
 		-- for all children device, iterate
 		MapUID2Index={}
@@ -721,7 +786,6 @@ local function SyncLights(lul_device)
 			"urn:upnp-org:serviceId:Dimming1,LoadLevelStatus=0",
 			"urn:upnp-org:serviceId:Dimming1,LoadLevelTarget=0",
 		}
-		local child_devices = luup.chdev.start(lul_device);
 		for k,v in pairs(data) do
 			local idx = tonumber(k)
 			local mapentry = LightTypes[ v.type ] or LightTypes[ "Default" ] 
@@ -737,15 +801,7 @@ local function SyncLights(lul_device)
 			)
 			MapUID2Index[ v.uniqueid ]=k
 		end
-		luup.chdev.sync(lul_device, child_devices)	
 		
-		debug(string.format("MapUID2Index is: %s",json.encode(MapUID2Index)))
-		for k,v in pairs(data) do
-			local childId,child = findChild( lul_device, v.uniqueid )
-			setAttrIfChanged("name", NAME_PREFIX..v.name, childId)
-			setAttrIfChanged("manufacturer", v.manufacturername, childId)
-			setAttrIfChanged("model", v.modelid, childId)
-		end
 	else
 		warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
 		return false
@@ -753,10 +809,45 @@ local function SyncLights(lul_device)
 	return (data~=nil)
 end
 
+local function InitDevices(lul_device,data)	 
+	debug(string.format("InitDevices(%s) MapUID2Index is: %s",lul_device,json.encode(MapUID2Index)))
+	for k,v in pairs(data) do
+		if (v.uniqueid~=nil) then	-- Hue Daylight sensor does not have uniqueID
+			local childId,child = findChild( lul_device, v.uniqueid )
+			if (childId ~= nil) then
+				setAttrIfChanged("name", NAME_PREFIX..v.name, childId)
+				setAttrIfChanged("manufacturer", v.manufacturername, childId)
+				setAttrIfChanged("model", v.modelid, childId)
+			-- unsuportedf devices wont be found, they have been filtered out at creationg time
+			-- else
+				-- warning(string.format("Could not find Hue device %s",v.uniqueid))
+			end
+		end
+	end
+end
+
+local function SyncDevices(lul_device)	 
+	local lights,msg = getLights(lul_device)
+	local sensors,msg = getSensors(lul_device)
+	if (light~=nil) or (sensors~=nil) then
+		local child_devices = luup.chdev.start(lul_device);
+		SyncLights(lul_device, lights, child_devices)
+		SyncSensors(lul_device, sensors, child_devices)
+		luup.chdev.sync(lul_device, child_devices)	
+		InitDevices(lul_device, lights)
+		InitDevices(lul_device, sensors)
+	else
+		warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
+		return false
+	end
+	return true
+end
+
 local function startEngine(lul_device)
 	debug(string.format("startEngine(%s)",lul_device))
 	local success=false
 	lul_device = tonumber(lul_device)
+	luup.register_handler('myALTHUE_Handler','ALTHUE_Handler')
 
 	local data,msg = getHueConfig(lul_device)
 	debug(string.format("return data: %s", json.encode(data or "nil")))
@@ -771,10 +862,7 @@ local function startEngine(lul_device)
 		setAttrIfChanged("name", data.name, lul_device)
 	end
 
-	if (PairWithHue(lul_device)) then
-		success = SyncLights(lul_device)
-		success = success and refreshHueData(lul_device)
-	end
+	success = PairWithHue(lul_device) and SyncDevices(lul_device) and refreshHueData(lul_device)
 	return success
 end
 

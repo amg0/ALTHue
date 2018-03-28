@@ -48,6 +48,65 @@ function findDeviceIdx(deviceID)
 	return null;
 }
 
+function array2Table(arr,idcolumn,viscols,caption,cls,htmlid,bResponsive) {
+	var html="";
+	var idcolumn = idcolumn || 'id';
+	var viscols = viscols || [idcolumn];
+	var responsive = ((bResponsive==null) || (bResponsive==true)) ? 'table-responsive-OFF' : ''
+
+	if ( (arr) && ($.isArray(arr) && (arr.length>0)) ) {
+		var display_order = [];
+		var keys= Object.keys(arr[0]);
+		$.each(viscols,function(k,v) {
+			if ($.inArray(v,keys)!=-1) {
+				display_order.push(v);
+			}
+		});
+		$.each(keys,function(k,v) {
+			if ($.inArray(v,viscols)==-1) {
+				display_order.push(v);
+			}
+		});
+
+		var bFirst=true;
+		html+="<table id='{1}' class='table {2} table-sm table-hover table-striped {0}'>".format(cls || '', htmlid || 'altui-grid' , responsive );
+		if (caption)
+			html += "<caption>{0}</caption>".format(caption)
+		$.each(arr, function(idx,obj) {
+			if (bFirst) {
+				html+="<thead>"
+				html+="<tr>"
+				$.each(display_order,function(_k,k) {
+					html+="<th style='text-transform: capitalize;' data-column-id='{0}' {1} {2}>".format(
+						k,
+						(k==idcolumn) ? "data-identifier='true'" : "",
+						"data-visible='{0}'".format( $.inArray(k,viscols)!=-1 )
+					)
+					html+=k;
+					html+="</th>"
+				});
+				html+="</tr>"
+				html+="</thead>"
+				html+="<tbody>"
+				bFirst=false;
+			}
+			html+="<tr>"
+			$.each(display_order,function(_k,k) {
+				html+="<td>"
+				html+=(obj[k]!=undefined) ? obj[k] : '';
+				html+="</td>"
+			});
+			html+="</tr>"
+		});
+		html+="</tbody>"
+		html+="</table>";
+	}
+	else
+		html +="<div>{0}</div>".format(_T("No data to display"))
+
+	return html;
+};
+	
 //-------------------------------------------------------------
 // Device TAB : Donate
 //-------------------------------------------------------------	
@@ -56,6 +115,56 @@ function ALTHUE_Donate(deviceID) {
 	htmlDonate+='<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank"><input type="hidden" name="cmd" value="_donations"><input type="hidden" name="business" value="alexis.mermet@free.fr"><input type="hidden" name="lc" value="FR"><input type="hidden" name="item_name" value="Alexis Mermet"><input type="hidden" name="item_number" value="althue"><input type="hidden" name="no_note" value="0"><input type="hidden" name="currency_code" value="EUR"><input type="hidden" name="bn" value="PP-DonationsBF:btn_donateCC_LG.gif:NonHostedGuest"><input type="image" src="https://www.paypalobjects.com/en_US/FR/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!"><img alt="" border="0" src="https://www.paypalobjects.com/fr_FR/i/scr/pixel.gif" width="1" height="1"></form>';
 	var html = '<div>'+htmlDonate+'</div>';
 	set_panel_html(html);
+}
+
+//-------------------------------------------------------------
+// Device TAB : Info
+//-------------------------------------------------------------	
+function ALTHUE_Information(deviceID) {
+	var url = buildHandlerUrl(deviceID,"config",{url:''})
+	$.get(url).done(function(data) {
+		var model = []
+		jQuery.each( data.lights, function(idx,light) {
+			model.push({
+				id:idx,
+				type: light.type,
+				name: light.name,
+				manufacturer:light.manufacturername,
+				model: light.modelid,
+				swversion:light.swversion,
+				reachable:light.state.reachable,
+			})
+		})
+		var html = array2Table(model,'id',[],'My Hue Lights','ALTHue-cls','ALTHue-lightstbl',false)
+
+		model = []
+		jQuery.each( data.sensors, function(idx,item) {
+			model.push({
+				id:idx,
+				type: item.type,
+				name: item.name,
+				manufacturer:item.manufacturername,
+				model: item.modelid,
+				swversion:item.swversion,
+				lastupdated:item.state.lastupdated,
+			})
+		})
+		html += array2Table(model,'id',[],'My Hue Sensors','ALTHue-cls','ALTHue-sensorstbl',false)
+
+		set_panel_html(html);
+	})
+}
+
+//-------------------------------------------------------------
+// Device TAB : Dump Json
+//-------------------------------------------------------------	
+function ALTHUE_Dump(deviceID) {
+	var url = buildHandlerUrl(deviceID,"config","")
+	$.get(url).done(function(data) {
+		var html=''
+		var html = '<pre>'+JSON.stringify(data,null,2)+'</pre>';
+		set_panel_html(html);
+	})
 }
 
 //-------------------------------------------------------------
@@ -108,7 +217,14 @@ function ALTHUE_Settings(deviceID) {
 						<div class="form-row"> \
 							<div class="form-group col-xs-6 col-6">																	\
 								<label for="althue-ipaddr">IP Addr</label>		\
-								<input type="text" class="form-control" id="althue-ipaddr" placeholder="xx.xx.xx.xx">	\
+								<div class="input-group">\
+								  <input type="text" class="form-control" id="althue-ipaddr" placeholder="xx.xx.xx.xx">\
+								  <div class="input-group-append">\
+									<button id="althue-discovery-btn" class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Discovery meethue.com</button>\
+									<div class="dropdown-menu">\
+									</div>\
+								  </div>\
+								</div>\
 							</div>																										\
 							<div class="form-group col-xs-6 col-6">																	\
 								<label for="althue-RefreshPeriod">Polling in sec</label>			\
@@ -140,6 +256,16 @@ function ALTHUE_Settings(deviceID) {
 		  </div>                                                    \
 		'		
 		set_panel_html(html);
+		jQuery.get("https://www.meethue.com/api/nupnp").done( function(data) {
+			var dropdown = jQuery("#althue-discovery-btn").parent().find("div.dropdown-menu")
+			jQuery.each(data, function(idx,item) {
+				jQuery(dropdown).append( '<a class="althue-ipselect dropdown-item" href="javascript:void(0);">'+item.internalipaddress+'</a>' )
+			})
+			jQuery('.althue-ipselect').click(function(e) {
+				var ip = jQuery(this).text();
+				jQuery("#althue-ipaddr").val(ip);
+			});
+		})
 		jQuery( "#althue-linkstatus").height(29);			// required in UI7 
 		jQuery( "#althue-linkstatus").data('status',linkok); 
 		jQuery( "#althue-ipaddr" ).val(ip_address);
@@ -276,6 +402,7 @@ function buildUPnPActionUrl(deviceID,service,action,params)
 function buildHandlerUrl(deviceID,command,params)
 {
 	//http://192.168.1.5:3480/data_request?id=lr_IPhone_Handler
+	params = params || []
 	var urlHead = ip_address +'id=lr_ALTHUE_Handler&command='+command+'&DeviceNum='+deviceID;
 	jQuery.each(params, function(index,value) {
 		urlHead = urlHead+"&"+index+"="+encodeURIComponent(value);

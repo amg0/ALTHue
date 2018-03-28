@@ -228,11 +228,33 @@
 	},
 	{
 		"Label": {
+			"lang_tag": "information",
+			"text": "Information"
+		},
+		"TopNavigationTab": "1",
+		"Position": "7",
+		"TabType": "javascript",
+		"ScriptName": "J_ALTUI.js",
+		"Function": "ALTHUE_Information"
+	},
+	{
+		"Label": {
+			"lang_tag": "dump",
+			"text": "Dump"
+		},
+		"TopNavigationTab": "1",
+		"Position": "8",
+		"TabType": "javascript",
+		"ScriptName": "J_ALTUI.js",
+		"Function": "ALTHUE_Dump"
+	},
+	{
+		"Label": {
 			"lang_tag": "donate",
 			"text": "Donate"
 		},
 		"TopNavigationTab": "1",
-		"Position": "7",
+		"Position": "9",
 		"TabType": "javascript",
 		"ScriptName": "J_ALTHUE.js",
 		"Function": "ALTHUE_Donate"
