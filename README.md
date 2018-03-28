@@ -13,3 +13,6 @@ Why another one in addition to Vera's one
 - Supports motion sensor, temp sensor, lux sensor & battery
 - Code less ugly and messy
 - All devices appear strictly as standard vera devices, supporting same service/variable, same Upnp actions
+
+Installation instructions:
+https://github.com/amg0/ALTHue/blob/master/Doc/ALTHue%20Philips%20Hue%20plugin.pdf
