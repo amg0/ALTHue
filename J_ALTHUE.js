@@ -185,7 +185,7 @@ var ALTHUE = (function(api) {
 			jQuery( "#althue-linkaction").click( function(e) {
 				ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
 					var action = (credentials!="") ? "UnpairWithHue" : "PairWithHue";
-					var url = ALTHUE.buildUPnPActionUrl(deviceID,ALTHUE_Svs2,action)
+					var url = ALTHUE.buildUPnPActionUrl(deviceID,ALTHUE.ALTHUE_Svs,action)
 					jQuery("#althue-linkaction").text("...")
 					jQuery("#althue-linkaction").addClass("disabled")
 					jQuery.ajax({
@@ -194,7 +194,7 @@ var ALTHUE = (function(api) {
 						cache: false,
 					}).done( function(data) {
 						// get real value
-						ALTHUE.get_device_state_async(deviceID,  ALTHUE_Svs, 'Credentials', function(credentials) {
+						ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
 							var oldlinkok = jQuery( "#althue-linkstatus").data('status'); 
 							var linkok = ((credentials !="" ) && (credentials != null)) ? 1 : 0;
 							if (oldlinkok==linkok) {
@@ -223,11 +223,11 @@ var ALTHUE = (function(api) {
 				var poll = jQuery( "#althue-RefreshPeriod" ).val();
 
 				if (ALTHUE.goodip(ip_address)) {
-					ALTHUE.saveVar( deviceID,  ALTHUE_Svs, "RefreshPeriod", poll, 0 )
+					ALTHUE.saveVar( deviceID,  ALTHUE.ALTHUE_Svs, "RefreshPeriod", poll, 0 )
 					ALTHUE.saveVar( deviceID,  null , "ip", ip_address, 0 )
 					jQuery.each( configs, function(idx,obj) {
 						var val = jQuery("#althue-"+obj.name).val();
-						bReload = bReload && ALTHUE.save( deviceID,  ALTHUE_Svs, obj.name, val, jQuery.isFunction(obj.func) ? obj.func : null, 0 )
+						bReload = bReload && ALTHUE.save( deviceID,  ALTHUE.ALTHUE_Svs, obj.name, val, jQuery.isFunction(obj.func) ? obj.func : null, 0 )
 					});
 				} else {
 					alert("Invalid IP address")
