@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.3"
+local version		= "v0.4"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
 local NAME_PREFIX	= "Hue "	-- trailing space needed
@@ -649,8 +649,15 @@ function refreshHueData(lul_device,norefresh)
 					if (v.type == "ZLLTemperature") then
 						setVariableIfChanged("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", v.state.temperature/100, childId )
 					elseif (v.type == "ZLLPresence") then
-						setVariableIfChanged("urn:micasaverde-com:serviceId:SecuritySensor1", "Tripped", (v.state.presence == true) and "1" or "0" , childId )
-						setVariableIfChanged("urn:micasaverde-com:serviceId:SecuritySensor1", "LastTrip", convertedTimestamp or "" , childId )
+						local tripped = (v.state.presence == true) and "1" or "0"
+						local armed = getSetVariable("urn:micasaverde-com:serviceId:SecuritySensor1", "Armed", childId, 0)
+						setVariableIfChanged("urn:micasaverde-com:serviceId:SecuritySensor1", "Tripped", tripped , childId )
+						if (armed=="1") then
+							setVariableIfChanged("urn:micasaverde-com:serviceId:SecuritySensor1", "ArmedTripped", tripped , childId )
+						end
+						if (tripped=="1") then
+							setVariableIfChanged("urn:micasaverde-com:serviceId:SecuritySensor1", "LastTrip", convertedTimestamp or "" , childId )
+						end
 					elseif (v.type == "ZLLLightLevel") then
 						setVariableIfChanged("urn:micasaverde-com:serviceId:LightSensor1", "CurrentLevel", v.state.lightlevel, childId )
 					end
