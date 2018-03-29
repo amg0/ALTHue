@@ -26,7 +26,7 @@ local LightTypes = {
 }
 local SensorTypes = {
 	["ZLLTemperature"] = 	{  dtype="urn:schemas-micasaverde-com:device:TemperatureSensor:1" , dfile="D_TemperatureSensor1.xml" , vartable={"urn:upnp-org:serviceId:TemperatureSensor1,CurrentTemperature=0"} },
-	["ZLLPresence"] = 		{  dtype="urn:schemas-micasaverde-com:device:MotionSensor:1" , dfile="D_MotionSensor1.xml" , vartable={"urn:upnp-org:serviceId:SecuritySensor1,Tripped=0"} },
+	["ZLLPresence"] = 		{  dtype="urn:schemas-micasaverde-com:device:MotionSensor:1" , dfile="D_MotionSensor1.xml" , vartable={"urn:micasaverde-com:serviceId:SecuritySensor1,Tripped=0"} },
 	["ZLLLightLevel"] = 	{  dtype="urn:schemas-micasaverde-com:device:LightSensor:1" , dfile="D_LightSensor1.xml" , vartable={"urn:micasaverde-com:serviceId:LightSensor1,CurrentLevel=0"} }
 }
 
