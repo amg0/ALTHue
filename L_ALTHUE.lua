@@ -578,6 +578,13 @@ function UserSetColorRGB(lul_device,newColorRGBTarget)
 	HueLampSetState(lul_device,body)
 end
 
+function UserSetArmed(lul_device,newArmedValue)
+	debug(string.format("UserSetArmed(%s,%s)",lul_device,newArmedValue))
+	lul_device = tonumber(lul_device)
+	newArmedValue = tonumber(newArmedValue)
+	setVariableIfChanged("urn:micasaverde-com:serviceId:SecuritySensor1", "Armed", newArmedValue, lul_device)
+end
+
 function getCurrentTemperature(lul_device)
   lul_device = tonumber(lul_device)
   debug(string.format("getCurrentTemperature(%d)",lul_device))

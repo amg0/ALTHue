@@ -85,5 +85,12 @@
 				UserSetColor(lul_device,lul_settings.newColorTarget)
 			</run>            
         </action>
-	</actionList>
+		<action>
+			<serviceId>urn:micasaverde-com:serviceId:SecuritySensor1</serviceId>
+			<name>SetArmed</name>
+			<run>
+				UserSetArmed(lul_device,lul_settings.newArmedValue)
+			</run>
+		</action>
+		</actionList>
 </implementation>
