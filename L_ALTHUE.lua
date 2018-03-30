@@ -11,14 +11,15 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.4"
+local version		= "v0.5"
+local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
 local NAME_PREFIX	= "Hue "	-- trailing space needed
 local hostname		= ""
 local MapUID2Index={}
 local LightTypes = {
-	["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight1.xml" },
+	["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableLight1.xml" }, -- D_DimmableRGBLight1
 	["Color temperature light"] = 	{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
 	["Color light"] = 				{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
 	["Dimmable light"] = 			{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
@@ -313,6 +314,7 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 	debug(string.format("request:%s",request))
 	debug(string.format("code:%s",code))
 	debug(string.format("data:%s",data or ""))
+	luup.variable_set(ALTHUE_SERVICE, "LastValidComm", os.time(), lul_device)
 	return json.decode(data) ,""
 end
 
@@ -590,10 +592,6 @@ function getCurrentTemperature(lul_device)
   debug(string.format("getCurrentTemperature(%d)",lul_device))
   return luup.variable_get("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", lul_device)
 end
-
-	-- ["ZLLTemperature"] = 	{  dtype="urn:schemas-micasaverde-com:device:TemperatureSensor:1" , dfile="D_TemperatureSensor1.xml" , vartable={"urn:upnp-org:serviceId:TemperatureSensor1,CurrentTemperature=0"} },
-	-- ["ZLLPresence"] = 		{  dtype="urn:schemas-micasaverde-com:device:MotionSensor:1" , dfile="D_MotionSensor1.xml" , vartable={"urn:upnp-org:serviceId:SecuritySensor1,Tripped=0"} },
-	-- ["ZLLLightLevel"] = 
 	
 function refreshHueData(lul_device,norefresh)
 	local success=true
@@ -613,20 +611,25 @@ function refreshHueData(lul_device,norefresh)
 		for k,v in pairs(data) do
 			local idx = tonumber(k)
 			local childId,child = findChild( lul_device, v.uniqueid )
-			local status = (v.state.on == true) and "1" or "0"
-			local bri = math.floor(100 * (v.state.bri-1) / 253)
-			if (v.state.on == false) then
-				bri=0
+			if (childId~=nil) then
+				local status = (v.state.on == true) and "1" or "0"
+				local bri = math.floor(100 * (v.state.bri-1) / 253)
+				if (v.state.on == false) then
+					bri=0
+				end
+				setVariableIfChanged("urn:upnp-org:serviceId:SwitchPower1", "Status", status, childId )
+				setVariableIfChanged("urn:upnp-org:serviceId:SwitchPower1", "Target", status, childId )
+				setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", bri, childId )
+				setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", bri, childId )
+			else
+				warning(string.format("could not find childId for Hue %s , uniqueid:%s",idx,v.uniqueid))
 			end
-			setVariableIfChanged("urn:upnp-org:serviceId:SwitchPower1", "Status", status, childId )
-			setVariableIfChanged("urn:upnp-org:serviceId:SwitchPower1", "Target", status, childId )
-			setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", bri, childId )
-			setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", bri, childId )
 		end		
 	else
 		success=false
 		warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
 	end
+	debug(string.format("After Lights, success is : %s",tostring(success)))
 	if (success) then
 		data,msg = getSensors(lul_device)
 		if (data~=nil) and (data["1"] ~=nil) then
@@ -667,6 +670,7 @@ function refreshHueData(lul_device,norefresh)
 			success=false
 			warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
 		end
+		debug(string.format("After Sensors, success is : %s",tostring(success)))
 	end
 	
 	if (norefresh==false) then
@@ -674,6 +678,7 @@ function refreshHueData(lul_device,norefresh)
 		debug(string.format("programming next refreshHueData(%s) in %s sec",lul_device,period))
 		luup.call_delay("refreshHueData",period,tostring(lul_device))
 	end
+	debug(string.format("refreshHueData returns  success is : %s",tostring(success)))
 	return success
 end
 
@@ -811,7 +816,8 @@ local function SyncLights(lul_device,data,child_devices)
 				mapentry.dfile,				-- children D-file
 				"", 						-- children I-file
 				table.concat(vartable, "\n"),	-- params
-				false						-- not embedded
+				false,						-- not embedded
+				false						-- invisible
 			)
 			MapUID2Index[ v.uniqueid ]=k
 		end
@@ -841,6 +847,7 @@ local function InitDevices(lul_device,data)
 end
 
 local function SyncDevices(lul_device)	 
+	debug(string.format("SyncDevices(%s)",lul_device))
 	local lights,msg = getLights(lul_device)
 	local sensors,msg = getSensors(lul_device)
 	if (light~=nil) or (sensors~=nil) then
@@ -889,6 +896,7 @@ function startupDeferred(lul_device)
 	local credentials	 = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
 	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
 	local iconCode = getSetVariable(ALTHUE_SERVICE,"IconCode", lul_device, "0")
+	local lastvalid = getSetVariable(ALTHUE_SERVICE,"LastValidComm", lul_device, "")
 
 	-- sanitize
 	if (tonumber(period)==0) then
@@ -929,8 +937,12 @@ function startupDeferred(lul_device)
 	if (ipaddr:trim()=="") then
 		UserMessage(string.format("The IP address of the Hue bridge is not set in the plugin attributes"),TASK_ERROR_PERM)
 		setVariableIfChanged(ALTHUE_SERVICE, "IconCode", 0, lul_device)
-		luup.set_failure(1,lul_device)  -- should be 0 in UI7
-		log("startup not completed successfully")
+		if( luup.version_branch == 1 and luup.version_major == 7) then
+			luup.set_failure(1,lul_device)  -- should be 0 in UI7
+		else
+			luup.set_failure(false,lul_device)	-- allways no failure mode  in UI5 !
+		end
+		error("startup not completed successfully")
 		return 
 	end
 	
@@ -959,6 +971,8 @@ local function checkVersion(lul_device)
   if ui7Check == "" then
 	luup.variable_set(ALTHUE_SERVICE, "UI7Check", "false", lul_device)
 	ui7Check = "false"
+	-- luup.attr_set("device_json", JSON_FILE, lul_device)
+	-- luup.reload()
   end
   if( luup.version_branch == 1 and luup.version_major == 7 and ui7Check == "false") then
 	luup.variable_set(ALTHUE_SERVICE, "UI7Check", "true", lul_device)

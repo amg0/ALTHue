@@ -29,7 +29,8 @@ if (typeof String.prototype.format == 'undefined') {
 	};
 };
 
-var ALTHUE = (function(api) {
+var myapi = window.api || null
+var ALTHUE = (function(api,$) {
 	var ALTHUE_Svs = 'urn:upnp-org:serviceId:althue1';
 
 	//-------------------------------------------------------------
@@ -51,7 +52,7 @@ var ALTHUE = (function(api) {
 		var url = ALTHUE.buildHandlerUrl(deviceID,"config",{url:''})
 		$.get(url).done(function(data) {
 			var model = []
-			jQuery.each( data.lights, function(idx,light) {
+			jQuery.each( data.lights || [], function(idx,light) {
 				model.push({
 					id:idx,
 					type: light.type,
@@ -65,7 +66,7 @@ var ALTHUE = (function(api) {
 			var html = ALTHUE.array2Table(model,'id',[],'My Hue Lights','ALTHue-cls','ALTHue-lightstbl',false)
 
 			model = []
-			jQuery.each( data.sensors, function(idx,item) {
+			jQuery.each( data.sensors || [], function(idx,item) {
 				model.push({
 					id:idx,
 					type: item.type,
@@ -166,7 +167,7 @@ var ALTHUE = (function(api) {
 			jQuery.get("https://www.meethue.com/api/nupnp").done( function(data) {
 				var dropdown = jQuery("#althue-discovery-btn").parent().find("div.dropdown-menu")
 				jQuery.each(data, function(idx,item) {
-					jQuery(dropdown).append( '<a class="althue-ipselect dropdown-item" href="javascript:void(0);">'+item.internalipaddress+'</a>' )
+					jQuery(dropdown).append( '<a class="althue-ipselect dropdown-item" href="javascript:void(0);">{0} {1} {2}</a>'.format(item.internalipaddress,item.name||'', item.macaddress|| '') )
 				})
 				jQuery('.althue-ipselect').click(function(e) {
 					var ip = jQuery(this).text();
@@ -206,11 +207,10 @@ var ALTHUE = (function(api) {
 							jQuery( "#althue-linkaction").text(map[linkok].btnText)
 							jQuery( "#althue-linkstatus-txt").text(map[linkok].txtHelp)
 						})
+						jQuery("#althue-linkaction").removeClass("disabled")
 					})
 					.fail(function() {
 						alert('Action Failed!');
-					})
-					.always(function(){
 						jQuery("#althue-linkaction").removeClass("disabled")
 					});
 				})
@@ -309,7 +309,8 @@ var ALTHUE = (function(api) {
 		},
 		
 		get_device_state_async: function(deviceID,  service, varName, func ) {
-			var url = data_command_url+'id=variableget&DeviceNum='+deviceID+'&serviceId='+service+'&Variable='+varName;
+			// var dcu = data_request_url.sub("/data_request","")	// for UI5 as well as UI7
+			var url = data_request_url+'id=variableget&DeviceNum='+deviceID+'&serviceId='+service+'&Variable='+varName;	
 			jQuery.get(url)
 			.done( function(data) {
 				if (jQuery.isFunction(func)) {
@@ -394,7 +395,7 @@ var ALTHUE = (function(api) {
 		}
 	}
 	return myModule;
-})(api)
+})(myapi ,jQuery)
 	
 //-------------------------------------------------------------
 // Device TAB : Donate
@@ -407,6 +408,17 @@ function ALTHUE_Donate(deviceID) {
 }
 
 
+function ALTHUE_Dump(deviceID) { 
+	return ALTHUE.Dump(deviceID)
+}
+
+function ALTHUE_Settings(deviceID) {
+	return ALTHUE.Settings(deviceID)
+}
+
+function ALTHUE_Information(deviceID) {
+	return ALTHUE.Information(deviceID)
+}
 
 
 
