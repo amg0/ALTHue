@@ -975,10 +975,13 @@ local function checkVersion(lul_device)
 	-- luup.attr_set("device_json", JSON_FILE, lul_device)
 	-- luup.reload()
   end
-  if( luup.version_branch == 1 and luup.version_major == 7 and ui7Check == "false") then
-	luup.variable_set(ALTHUE_SERVICE, "UI7Check", "true", lul_device)
-	luup.attr_set("device_json", UI7_JSON_FILE, lul_device)
-	luup.reload()
+  if( luup.version_branch == 1 and luup.version_major == 7) then
+	if (ui7Check == "false") then
+		-- first & only time we do this
+		luup.variable_set(ALTHUE_SERVICE, "UI7Check", "true", lul_device)
+		luup.attr_set("device_json", UI7_JSON_FILE, lul_device)
+		luup.reload()
+	end
   else
 	-- UI5 specific
 	LightTypes["Extended color light"]={  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" }
