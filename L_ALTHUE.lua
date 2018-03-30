@@ -19,7 +19,8 @@ local NAME_PREFIX	= "Hue "	-- trailing space needed
 local hostname		= ""
 local MapUID2Index={}
 local LightTypes = {
-	["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableLight1.xml" }, -- D_DimmableRGBLight1
+	-- ["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableLight1.xml" }, -- UI5 requires this
+	["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight1.xml" }, 
 	["Color temperature light"] = 	{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
 	["Color light"] = 				{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
 	["Dimmable light"] = 			{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
@@ -978,6 +979,9 @@ local function checkVersion(lul_device)
 	luup.variable_set(ALTHUE_SERVICE, "UI7Check", "true", lul_device)
 	luup.attr_set("device_json", UI7_JSON_FILE, lul_device)
 	luup.reload()
+  else
+	-- UI5 specific
+	LightTypes["Extended color light"]={  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableLight1.xml" }
   end
 end
 
