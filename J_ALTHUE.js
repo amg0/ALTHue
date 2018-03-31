@@ -57,8 +57,7 @@ var ALTHUE = (function(api,$) {
 					id:idx,
 					type: light.type,
 					name: light.name,
-					manufacturer:light.manufacturername,
-					model: light.modelid,
+					model: "{0} {1}".format(light.manufacturername,light.modelid),
 					swversion:light.swversion,
 					reachable:light.state.reachable,
 				})
@@ -71,8 +70,7 @@ var ALTHUE = (function(api,$) {
 					id:idx,
 					type: item.type,
 					name: item.name,
-					manufacturer:item.manufacturername,
-					model: item.modelid,
+					model: "{0} {1}".format(item.manufacturername,item.modelid),
 					swversion:item.swversion,
 					lastupdated:item.state.lastupdated,
 				})
@@ -93,7 +91,7 @@ var ALTHUE = (function(api,$) {
 				var model = []
 				jQuery.each( data.whitelist || [], function(idx,app) {
 					model.push({
-						name: app.name,
+						name: '<span title="{1}">{0}</span>'.format(app.name,idx),
 						// key: idx,
 						lastuse: app["last use date"],
 						create: app["create date"],
