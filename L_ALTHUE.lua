@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.6"
+local version		= "v0.7"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -404,7 +404,7 @@ function myALTHUE_Handler(lul_request, lul_parameters, lul_outputformat)
 	  ["deleteUserID"]=
 	  function(params)
 		local oldcredentials = lul_parameters["oldcredentials"] or ""
-		local data,msg = deleteUserID(lul_device,oldcredentials)
+		local data,msg = deleteUserID(deviceID,oldcredentials)
 		return json.encode(data or {}), "application/json"
 	  end  
 	  

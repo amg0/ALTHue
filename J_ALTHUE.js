@@ -105,6 +105,9 @@ var ALTHUE = (function(api,$) {
 				jQuery(".althue-delapp").click(function(e){
 					var id = jQuery(this).data('idx');
 					var url = ALTHUE.buildHandlerUrl(deviceID,"deleteUserID",{oldcredentials:id})
+					$.get(url).done(function(data) {
+						alert(data)
+					})
 				})
 			})
 		});
