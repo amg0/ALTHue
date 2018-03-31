@@ -158,7 +158,7 @@ var ALTHUE = (function(api,$) {
 				<label for="althue-NamePrefix">Prefix for names</label>		\
 				<div><input type="text" class="form-control" id="althue-NamePrefix" placeholder="Prefix or empty" value="{0}"></div>'.format(prefix)
 			var html = '<style>.bg-success { background-color: #28a745!important; } .bg-danger { background-color: #dc3545!important; }</style>'
-			html +='<table class="table">'
+			html +='<form id="althue-settings-form"><table class="table">'
 			html += '<thead><tr><td></td><td></td></tr><thead>'
 			html += '<tbody>'
 			html += '<tr>'
@@ -171,7 +171,7 @@ var ALTHUE = (function(api,$) {
 			html += '</tr>'
 			html += '</tbody>'
 			html += '</table>'
-	
+			html += '<button class="btn btn-primary" type="submit">Save</button></form>'
 			set_panel_html(html);
 			jQuery.get("https://www.meethue.com/api/nupnp").done( function(data) {
 				var dropdown = jQuery("#althue-discovery-btn").parent().find("div.dropdown-menu")
@@ -225,19 +225,16 @@ var ALTHUE = (function(api,$) {
 				})
 			});
 			
-			jQuery( "#althue-settings-form" ).on("submit", function(event) {
+			jQuery( "#althue-settings-form" ).submit(function(event) {
 				var bReload = true;
 				event.preventDefault();
 				var ip_address = jQuery( "#althue-ipaddr" ).val();
 				var poll = jQuery( "#althue-RefreshPeriod" ).val();
-
+				var prefix = jQuery( "#althue-NamePrefix" ).val();
 				if (ALTHUE.goodip(ip_address)) {
 					ALTHUE.saveVar( deviceID,  ALTHUE.ALTHUE_Svs, "RefreshPeriod", poll, 0 )
+					ALTHUE.saveVar( deviceID,  ALTHUE.ALTHUE_Svs, "NamePrefix", prefix, 0 )
 					ALTHUE.saveVar( deviceID,  null , "ip", ip_address, 0 )
-					jQuery.each( configs, function(idx,obj) {
-						var val = jQuery("#althue-"+obj.name).val();
-						bReload = bReload && ALTHUE.save( deviceID,  ALTHUE.ALTHUE_Svs, obj.name, val, jQuery.isFunction(obj.func) ? obj.func : null, 0 )
-					});
 				} else {
 					alert("Invalid IP address")
 					bReload = false;
@@ -307,7 +304,6 @@ var ALTHUE = (function(api,$) {
 			}
 
 			if ((!func) || func(varVal)) {
-				//set_device_state(deviceID,  ipx800_Svs, varName, varVal);
 				this.saveVar(deviceID,  service, varName, varVal, reload)
 				jQuery('#althue-' + varName).css('color', 'black');
 				return true;
