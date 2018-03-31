@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.5"
+local version		= "v0.6"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -399,7 +399,15 @@ function myALTHUE_Handler(lul_request, lul_parameters, lul_outputformat)
 		local url = lul_parameters["url"] or ""
 		local data,msg = ALTHueHttpCall(deviceID,"GET",url)
 		return json.encode(data or {}), "application/json"
+	  end,  
+	  
+	  ["deleteUserID"]=
+	  function(params)
+		local oldcredentials = lul_parameters["oldcredentials"] or ""
+		local data,msg = deleteUserID(lul_device,oldcredentials)
+		return json.encode(data or {}), "application/json"
 	  end  
+	  
   }
   -- actual call
   lul_html , mime_type = switch(command,action)(lul_parameters)
@@ -614,7 +622,7 @@ function refreshHueData(lul_device,norefresh)
 			local childId,child = findChild( lul_device, v.uniqueid )
 			if (childId~=nil) then
 				local status = (v.state.on == true) and "1" or "0"
-				local bri = math.floor(100 * (v.state.bri-1) / 253)
+				local bri = math.floor(100 * ((v.state.bri or 1)-1) / 253)
 				if (v.state.on == false) then
 					bri=0
 				end
@@ -651,7 +659,7 @@ function refreshHueData(lul_device,norefresh)
 						setVariableIfChanged("urn:micasaverde-com:serviceId:HaDevice1", "BatteryDate", convertedTimestamp or "", childId )
 					end
 					if (v.type == "ZLLTemperature") then
-						setVariableIfChanged("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", v.state.temperature/100, childId )
+						setVariableIfChanged("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", (v.state.temperature or 0)/100, childId )
 					elseif (v.type == "ZLLPresence") then
 						local tripped = (v.state.presence == true) and "1" or "0"
 						local armed = getSetVariable("urn:micasaverde-com:serviceId:SecuritySensor1", "Armed", childId, 0)
@@ -663,7 +671,7 @@ function refreshHueData(lul_device,norefresh)
 							setVariableIfChanged("urn:micasaverde-com:serviceId:SecuritySensor1", "LastTrip", convertedTimestamp or "" , childId )
 						end
 					elseif (v.type == "ZLLLightLevel") then
-						setVariableIfChanged("urn:micasaverde-com:serviceId:LightSensor1", "CurrentLevel", v.state.lightlevel, childId )
+						setVariableIfChanged("urn:micasaverde-com:serviceId:LightSensor1", "CurrentLevel", v.state.lightlevel or "", childId )
 					end
 				end
 			end		

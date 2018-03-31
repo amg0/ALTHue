@@ -82,7 +82,34 @@ var ALTHUE = (function(api,$) {
 			set_panel_html(html);
 		})
 	};
-
+	
+	//-------------------------------------------------------------
+	// Device TAB : Applications
+	//-------------------------------------------------------------	
+	function ALTHUE_Applications(deviceID) {
+		ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
+			var url = ALTHUE.buildHandlerUrl(deviceID,"config",{url:'config'})
+			$.get(url).done(function(data) {
+				var model = []
+				jQuery.each( data.whitelist || [], function(idx,app) {
+					model.push({
+						name: app.name,
+						// key: idx,
+						lastuse: app["last use date"],
+						create: app["create date"],
+						del: (idx==credentials) ? '' : '<button data-idx="{0}" class="btn btn-sm althue-delapp"> <i  class="fa fa-trash-o text-danger" aria-hidden="true" title="Delete"></i> Del</button>'.format(idx)
+					})
+				})
+				var html = ALTHUE.array2Table(model,'id',[],'My Hue Apps','ALTHue-cls','ALTHue-appstbl',false)
+				set_panel_html(html);
+				jQuery(".althue-delapp").click(function(e){
+					var id = jQuery(this).data('idx');
+					var url = ALTHUE.buildHandlerUrl(deviceID,"deleteUserID",{oldcredentials:id})
+				})
+			})
+		});
+	};
+	
 	//-------------------------------------------------------------
 	// Device TAB : Settings
 	//-------------------------------------------------------------	
@@ -99,70 +126,50 @@ var ALTHUE = (function(api,$) {
 			var poll = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, 'RefreshPeriod',1);
 			var ip_address = jsonp.ud.devices[ALTHUE.findDeviceIdx(deviceID)].ip;
 			var configs = [
-				{ name: "NamePrefix", label: "Prefix pour les noms" , placeholder: "Prefix ou vide"},
+				{ name: "NamePrefix", label: "Prefix for names" , placeholder: "Prefix or empty"},
 			];
-
-			var htmlConfigs = "";
-			jQuery.each( configs, function(idx,obj) {
-				var value = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, obj.name,1);
-				htmlConfigs += '	\
-							<div class="form-group col-xs-6 col-6">																	\
-								<label for="althue-{0}">{1}</label>		\
-								<input type="{3}" class="form-control" id="althue-{0}" placeholder="{2}" value="{4}">	\
-							</div>																										\
-				'.format(
-					obj.name,
-					obj.label,
-					obj.placeholder,
-					obj.type || "text",
-					value
-				);
-			});
-			var html =
-			'                                                           \
-			  <div id="althue-settings row">                                           \
-				<form class="" id="althue-settings-form">                        \
-							<div class="form-row"> \
-								<div class="form-group col-xs-6 col-6">																	\
-									<label for="althue-ipaddr">IP Addr</label>		\
-									<div class="input-group">\
-									  <input type="text" class="form-control" id="althue-ipaddr" placeholder="xx.xx.xx.xx">\
-									  <div class="input-group-append">\
-										<button id="althue-discovery-btn" class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Discovery meethue.com</button>\
-										<div class="dropdown-menu">\
-										</div>\
-									  </div>\
-									</div>\
-								</div>																										\
-								<div class="form-group col-xs-6 col-6">																	\
-									<label for="althue-RefreshPeriod">Polling in sec</label>			\
-									<input type="number" min="1" max="600" class="form-control" id="althue-RefreshPeriod" placeholder="5">	\
-								</div> 																								\
-							</div> 																								\
-							<div class="form-row"> \
-								<div class="form-group col-xs-6 col-6">																	\
-									<label for="althue-linkstatus">Link Status</label>		\
-									<div class="form-row"> \
-										<div id="althue-linkstatus" class="col-6 '+map[linkok].bgColor+'"> \
-											<div id="althue-linkstatus-txt">'+map[linkok].txtHelp+'</div>	\
-										</div> \
-										<div class="col-6"> \
-											<button type="button" id="althue-linkaction" class="btn btn-sm btn-secondary">'+map[linkok].btnText+'</button>	\
-										</div> \
-									</div> \
-								</div>			\																							\
-							</div>			\																							\
-							<div class="form-row"> \
-								'+htmlConfigs+'																							\
-							</div>			\																							\
-							<div class="form-row"> \
-								<div class="form-group col-xs-12 col-12">																	\
-									<button id="althue-submit" type="submit" class="btn btn-primary">Submit</button>	\
-								</div>																										\
-							</div>																										\
-						</form>                                                 \
-			  </div>                                                    \
-			'		
+			var htmlip = '\
+					<label for="althue-ipaddr">IP Addr</label>		\
+					<div class="input-group">\
+					  <input type="text" class="form-control" id="althue-ipaddr" placeholder="xx.xx.xx.xx">\
+					  <div class="input-group-append">\
+						<button id="althue-discovery-btn" class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Discovery meethue.com</button>\
+						<div class="dropdown-menu">\
+						</div>\
+					  </div>\
+					</div>'
+			var htmlpolling = '\
+				<label for="althue-RefreshPeriod">Polling in sec</label>			\
+				<div><input type="number" min="1" max="600" class="form-control" id="althue-RefreshPeriod" placeholder="5"></div>'	
+			var htmlpairstatus = '\
+				<label for="althue-linkstatus">Link Status</label>		\
+				<div class="form-row"> \
+					<div id="althue-linkstatus" class="col-6 '+map[linkok].bgColor+'"> \
+						<div id="althue-linkstatus-txt">'+map[linkok].txtHelp+'</div>	\
+					</div> \
+					<div class="col-6"> \
+						<button type="button" id="althue-linkaction" class="btn btn-sm btn-secondary">'+map[linkok].btnText+'</button>	\
+					</div> \
+				</div>'
+			var prefix = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, "NamePrefix",1);
+			var htmlprefix = '\
+				<label for="althue-NamePrefix">Prefix for names</label>		\
+				<div><input type="text" class="form-control" id="althue-NamePrefix" placeholder="Prefix or empty" value="{0}"></div>'.format(prefix)
+			var html = '<style>.bg-success { background-color: #28a745!important; } .bg-danger { background-color: #dc3545!important; }</style>'
+			html +='<table class="table">'
+			html += '<thead><tr><td></td><td></td></tr><thead>'
+			html += '<tbody>'
+			html += '<tr>'
+			html += '<td>{0}</td>'.format(htmlip)
+			html += '<td>{0}</td>'.format(htmlpolling)
+			html += '</tr>'
+			html += '<tr>'
+			html += '<td>{0}</td>'.format(htmlpairstatus)
+			html += '<td>{0}</td>'.format(htmlprefix)
+			html += '</tr>'
+			html += '</tbody>'
+			html += '</table>'
+	
 			set_panel_html(html);
 			jQuery.get("https://www.meethue.com/api/nupnp").done( function(data) {
 				var dropdown = jQuery("#althue-discovery-btn").parent().find("div.dropdown-menu")
@@ -248,6 +255,7 @@ var ALTHUE = (function(api,$) {
 		Dump 		: ALTHUE_Dump,
 		Settings 	: ALTHUE_Settings,
 		Information : ALTHUE_Information,
+		Applications: ALTHUE_Applications,
 		
 		//-------------------------------------------------------------
 		// Helper functions to build URLs to call VERA code from JS
@@ -396,6 +404,7 @@ var ALTHUE = (function(api,$) {
 	}
 	return myModule;
 })(myapi ,jQuery)
+
 	
 //-------------------------------------------------------------
 // Device TAB : Donate
@@ -407,7 +416,9 @@ function ALTHUE_Donate(deviceID) {
 	set_panel_html(html);
 }
 
-
+//-------------------------------------------------------------
+// UI5 helpers
+//-------------------------------------------------------------	
 function ALTHUE_Dump(deviceID) { 
 	return ALTHUE.Dump(deviceID)
 }
@@ -420,6 +431,9 @@ function ALTHUE_Information(deviceID) {
 	return ALTHUE.Information(deviceID)
 }
 
+function ALTHUE_Applications(deviceID) {
+	return ALTHUE.Applications(deviceID)
+}
 
 
 

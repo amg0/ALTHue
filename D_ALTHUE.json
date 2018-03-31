@@ -229,10 +229,20 @@
 	},
 	{
 		"Label": {
+			"lang_tag": "applications",
+			"text": "Applications"
+		},
+		"Position": "8",
+		"TabType": "javascript",
+		"ScriptName": "J_ALTUI.js",
+		"Function": "ALTHUE_Applications"
+	},
+	{
+		"Label": {
 			"lang_tag": "dump",
 			"text": "Dump"
 		},
-		"Position": "8",
+		"Position": "9",
 		"TabType": "javascript",
 		"ScriptName": "J_ALTHUE.js",
 		"Function": "ALTHUE_Dump"
@@ -243,7 +253,7 @@
 			"text": "Donate"
 		},
 		"TopNavigationTab": "1",
-		"Position": "9",
+		"Position": "10",
 		"TabType": "javascript",
 		"ScriptName": "J_ALTHUE.js",
 		"Function": "ALTHUE_Donate"
