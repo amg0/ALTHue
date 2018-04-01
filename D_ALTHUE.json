@@ -1,6 +1,6 @@
 {
-  "flashicon": "https://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE.png",
-  "default_icon": "https://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE.png",
+  "flashicon": "http://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE.png",
+  "default_icon": "http://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE.png",
   "halloIconsDir": "pics\/hallo",
   "state_icons": [
     "iconALTHUE_0.png",
