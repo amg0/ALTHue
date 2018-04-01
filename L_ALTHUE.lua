@@ -992,7 +992,7 @@ local function checkVersion(lul_device)
 	end
   else
 	-- UI5 specific
-	LightTypes["Extended color light"]={  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" }
+	LightTypes["Extended color light"]={  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableRGBLight1.xml" }
   end
 end
 

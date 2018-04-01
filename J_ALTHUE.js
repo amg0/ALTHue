@@ -127,9 +127,6 @@ var ALTHUE = (function(api,$) {
 			];
 			var poll = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, 'RefreshPeriod',1);
 			var ip_address = jsonp.ud.devices[ALTHUE.findDeviceIdx(deviceID)].ip;
-			var configs = [
-				{ name: "NamePrefix", label: "Prefix for names" , placeholder: "Prefix or empty"},
-			];
 			var htmlip = '\
 					<label for="althue-ipaddr">IP Addr</label>		\
 					<div class="input-group">\
