@@ -1,12 +1,12 @@
 {
-  "flashicon": "https://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE.png",
-  "default_icon": "https://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE.png",
+  "flashicon": "http://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE.png",
+  "default_icon": "http://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE.png",
   "halloIconsDir": "pics\/hallo",
   "state_icons": [
     "iconALTHUE_0.png",
     "iconALTHUE_100.png",
 	{
-		"img": "https://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE_0.png",
+		"img": "http://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE_0.png",
 		"conditions": [
 			{
 				"service": "urn:upnp-org:serviceId:althue1",
@@ -17,7 +17,7 @@
 		]
 	},
 	{
-		"img": "https://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE_100.png",
+		"img": "http://raw.githubusercontent.com/amg0/ALTHUE/master/iconALTHUE_100.png",
 		"conditions": [
 			{
 				"service": "urn:upnp-org:serviceId:althue1",
