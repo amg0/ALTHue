@@ -198,16 +198,6 @@
     },
     {
       "Label": {
-        "lang_tag": "logs",
-        "text": "Logs"
-      },
-      "Position": "4",
-      "TabType": "javascript",
-      "ScriptName": "shared.js",
-      "Function": "device_logs"
-    },
-    {
-      "Label": {
         "lang_tag": "notifications",
         "text": "Notifications"
       },
@@ -229,23 +219,23 @@
 	},
 	{
 		"Label": {
-			"lang_tag": "applications",
-			"text": "Applications"
+			"lang_tag": "scenes",
+			"text": "Scenes"
 		},
 		"Position": "8",
 		"TabType": "javascript",
 		"ScriptName": "J_ALTUI.js",
-		"Function": "ALTHUE_Applications"
+		"Function": "ALTHUE_Scenes"
 	},
 	{
 		"Label": {
-			"lang_tag": "dump",
-			"text": "Dump"
+			"lang_tag": "applications",
+			"text": "Applications"
 		},
 		"Position": "9",
 		"TabType": "javascript",
-		"ScriptName": "J_ALTHUE.js",
-		"Function": "ALTHUE_Dump"
+		"ScriptName": "J_ALTUI.js",
+		"Function": "ALTHUE_Applications"
 	},
 	{
 		"Label": {
@@ -253,7 +243,7 @@
 			"text": "Donate"
 		},
 		"TopNavigationTab": "1",
-		"Position": "10",
+		"Position": "11",
 		"TabType": "javascript",
 		"ScriptName": "J_ALTHUE.js",
 		"Function": "ALTHUE_Donate"

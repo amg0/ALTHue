@@ -32,6 +32,7 @@ if (typeof String.prototype.format == 'undefined') {
 var myapi = window.api || null
 var ALTHUE = (function(api,$) {
 	var ALTHUE_Svs = 'urn:upnp-org:serviceId:althue1';
+	jQuery("body").prepend("<style>.ALTHue-cls { width:100%; }</style>")
 
 	//-------------------------------------------------------------
 	// Device TAB : Dump Json
@@ -63,7 +64,6 @@ var ALTHUE = (function(api,$) {
 				})
 			})
 			var html = ALTHUE.array2Table(model,'id',[],'My Hue Lights','ALTHue-cls','ALTHue-lightstbl',false)
-
 			model = []
 			jQuery.each( data.sensors || [], function(idx,item) {
 				model.push({
@@ -84,6 +84,50 @@ var ALTHUE = (function(api,$) {
 	//-------------------------------------------------------------
 	// Device TAB : Applications
 	//-------------------------------------------------------------	
+	function ALTHUE_Scenes(deviceID) {
+		
+		function formatLights(arr,lights) {
+			var names=[]
+			jQuery.map(arr, function(elem,idx) {
+				names.push(lights[ elem ].name)
+			});
+			return names.join(",")
+		};
+		function sortByName(a,b) {
+			return (a.name < b.name ) ? -1 : ( (a.name == b.name ) ? 0 : 1 )
+		};
+		ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
+			var url = ALTHUE.buildHandlerUrl(deviceID,"config",{url:''})
+			$.get(url).done(function(data) {
+				var model = []
+				var arr = $.map(data.scenes || [] , function(elem,idx) {
+					return elem
+				});
+				jQuery.each( arr.sort(sortByName), function(idx,scene) {
+					model.push({
+						name:scene.name,
+						lights: formatLights( scene.lights, data.lights ),
+						lastupdated:scene.lastupdated,
+						run: '<button data-idx="{0}" class="btn btn-sm althue-runscene"> <i  class="fa fa-play" aria-hidden="true" title="Run"></i> Run</button>'.format(idx)
+					})
+				})
+				var html = ALTHUE.array2Table(model,'id',[],'My Hue Scenes','ALTHue-cls','ALTHue-scenestbl',false)
+				set_panel_html(html);
+				jQuery(".althue-runscene").click(function(e){
+					var id = jQuery(this).data('idx');
+					var that = jQuery(this);
+					var url = ALTHUE.buildHandlerUrl(deviceID,"runScene",{sceneid:id});
+					$.get(url).fail( function() {
+						alert("action did not complete successfully")
+					})
+				})
+			});
+		})
+	};
+	
+		//-------------------------------------------------------------
+	// Device TAB : Applications
+	//-------------------------------------------------------------	
 	function ALTHUE_Applications(deviceID) {
 		ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
 			var url = ALTHUE.buildHandlerUrl(deviceID,"config",{url:'config'})
@@ -98,7 +142,7 @@ var ALTHUE = (function(api,$) {
 						del: (idx==credentials) ? '' : '<button data-idx="{0}" class="btn btn-sm althue-delapp"> <i  class="fa fa-trash-o text-danger" aria-hidden="true" title="Delete"></i> Del</button>'.format(idx)
 					})
 				})
-				var html = ALTHUE.array2Table(model,'id',[],'My Hue Apps','ALTHue-cls','ALTHue-appstbl',false)
+				var html = ALTHUE.array2Table(model,'name',[],'My Hue Apps','ALTHue-cls','ALTHue-appstbl',false)
 				set_panel_html(html);
 				jQuery(".althue-delapp").click(function(e){
 					var id = jQuery(this).data('idx');
@@ -252,6 +296,7 @@ var ALTHUE = (function(api,$) {
 		Settings 	: ALTHUE_Settings,
 		Information : ALTHUE_Information,
 		Applications: ALTHUE_Applications,
+		Scenes		: ALTHUE_Scenes,
 		
 		//-------------------------------------------------------------
 		// Helper functions to build URLs to call VERA code from JS
@@ -430,6 +475,8 @@ function ALTHUE_Applications(deviceID) {
 	return ALTHUE.Applications(deviceID)
 }
 
-
+function ALTHUE_Scenes(deviceID) {
+	return ALTHUE.Scenes(deviceID)
+}
 
 

@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.7"
+local version		= "v0.8"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -336,6 +336,13 @@ local function deleteUserID(lul_device,oldcredentials)
 	return data,msg
 end
 
+local function runScene(lul_device,id)
+	local cmd = "groups/0/action"
+	local body = string.format('{"scene": "%s"}',id)
+	local data,msg = ALTHueHttpCall(lul_device,"PUT",cmd,body)
+	return data,msg
+end
+
 local function getTimezones(lul_device)
 	-- /api/<username>/capabilities/timezones
 	local data,msg = ALTHueHttpCall(lul_device,"GET","info/timezones")
@@ -406,8 +413,14 @@ function myALTHUE_Handler(lul_request, lul_parameters, lul_outputformat)
 		local oldcredentials = lul_parameters["oldcredentials"] or ""
 		local data,msg = deleteUserID(deviceID,oldcredentials)
 		return json.encode(data or {}), "application/json"
-	  end  
+	  end, 
 	  
+	  ["runScene"]=
+	  function(params)
+		local id = lul_parameters["sceneid"] or ""
+		local data,msg = runScene(deviceID,id)
+		return json.encode(data or {}), "application/json"
+	  end
   }
   -- actual call
   lul_html , mime_type = switch(command,action)(lul_parameters)
