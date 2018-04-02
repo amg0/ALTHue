@@ -75,7 +75,7 @@ end
 ------------------------------------------------
 -- Device Properties Utils
 ------------------------------------------------
-function getSetVariable(serviceId, name, deviceId, default)
+local function getSetVariable(serviceId, name, deviceId, default)
   local curValue = luup.variable_get(serviceId, name, deviceId)
   if (curValue == nil) then
 	curValue = default
@@ -84,7 +84,7 @@ function getSetVariable(serviceId, name, deviceId, default)
   return curValue
 end
 
-function getSetVariableIfEmpty(serviceId, name, deviceId, default)
+local function getSetVariableIfEmpty(serviceId, name, deviceId, default)
   local curValue = luup.variable_get(serviceId, name, deviceId)
   if (curValue == nil) or (curValue:trim() == "") then
 	curValue = default
@@ -93,7 +93,7 @@ function getSetVariableIfEmpty(serviceId, name, deviceId, default)
   return curValue
 end
 
-function setVariableIfChanged(serviceId, name, value, deviceId)
+local function setVariableIfChanged(serviceId, name, value, deviceId)
   debug(string.format("setVariableIfChanged(%s,%s,%s,%s)",serviceId, name, value, deviceId))
   local curValue = luup.variable_get(serviceId, name, tonumber(deviceId)) or ""
   value = value or ""
@@ -102,7 +102,7 @@ function setVariableIfChanged(serviceId, name, value, deviceId)
   end
 end
 
-function setAttrIfChanged(name, value, deviceId)
+local function setAttrIfChanged(name, value, deviceId)
   debug(string.format("setAttrIfChanged(%s,%s,%s)",name, value, deviceId))
   local curValue = luup.attr_get(name, deviceId)
   if ((value ~= curValue) or (curValue == nil)) then
@@ -161,11 +161,11 @@ local function task(text, mode)
   end
 end
 
-function clearTask()
+local function clearTask()
   task("Clearing...", TASK_SUCCESS)
 end
 
-function UserMessage(text, mode)
+local function UserMessage(text, mode)
   mode = (mode or TASK_ERROR)
   task(text,mode)
 end
@@ -200,12 +200,7 @@ end
 
 function string:split(sep) -- from http://lua-users.org/wiki/SplitJoin	 : changed as consecutive delimeters was not returning empty strings
   return Split(self, sep)
-  -- local sep, fields = sep or ":", {}
-  -- local pattern = string.format("([^%s]+)", sep)
-  -- self:gsub(pattern, function(c) fields[#fields+1] = c end)
-  -- return fields
 end
-
 
 function string:template(variables)
   return (self:gsub('@(.-)@',
@@ -364,7 +359,7 @@ end
 -- http://192.168.1.5:3480/data_request?id=lr_ALTHUE_Handler&command=xxx
 -- recommended settings in ALTUI: PATH = /data_request?id=lr_ALTHUE_Handler&mac=$M&deviceID=114
 ------------------------------------------------------------------------------------------------
-function switch( command, actiontable)
+local function switch( command, actiontable)
   -- check if it is in the table, otherwise call default
   if ( actiontable[command]~=nil ) then
 	return actiontable[command]
