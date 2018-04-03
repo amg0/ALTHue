@@ -198,9 +198,9 @@ local function Split(str, delim, maxNb)
   return result
 end
 
-function string:split(sep) -- from http://lua-users.org/wiki/SplitJoin	 : changed as consecutive delimeters was not returning empty strings
-  return Split(self, sep)
-end
+-- function string:split(sep) -- from http://lua-users.org/wiki/SplitJoin	 : changed as consecutive delimeters was not returning empty strings
+  -- return Split(self, sep)
+-- end
 
 function string:template(variables)
   return (self:gsub('@(.-)@',
@@ -588,7 +588,7 @@ end
 
 function UserSetColorRGB(lul_device,newColorRGBTarget)
 	debug(string.format("UserSetColorRGB(%s,%s)",lul_device,newColorRGBTarget))
-	local parts = newColorRGBTarget:split(',')
+	local parts = Split(newColorRGBTarget,',')
 	local x,y = rgb_to_cie(parts[1], parts[2], parts[3])
 	debug(string.format("RGB: %s => x:%s y:%s",newColorRGBTarget, tostring(x), tostring(y)))
 	local newValue = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
