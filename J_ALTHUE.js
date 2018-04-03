@@ -94,29 +94,31 @@ var ALTHUE = (function(api,$) {
 			return names.join(",")
 		};
 		function sortByName(a,b) {
-			return (a.name < b.name ) ? -1 : ( (a.name == b.name ) ? 0 : 1 )
+			return (a.elem.name < b.elem.name ) ? -1 : ( (a.elem.name == b.elem.name ) ? 0 : 1 )
 		};
 		ALTHUE.get_device_state_async(deviceID,  ALTHUE.ALTHUE_Svs, 'Credentials', function(credentials) {
 			var url = ALTHUE.buildHandlerUrl(deviceID,"config",{url:''})
 			$.get(url).done(function(data) {
 				var model = []
 				var arr = $.map(data.scenes || [] , function(elem,idx) {
-					return elem
+					return {id:idx,elem:elem}
 				});
 				jQuery.each( arr.sort(sortByName), function(idx,scene) {
 					model.push({
-						name:scene.name,
-						lights: formatLights( scene.lights, data.lights ),
-						lastupdated:scene.lastupdated,
-						run: '<button data-idx="{0}" class="btn btn-sm althue-runscene"> <i  class="fa fa-play" aria-hidden="true" title="Run"></i> Run</button>'.format(idx)
+						name:"<span title='{1}'>{0}</span>".format(scene.elem.name,scene.id),
+						lights: formatLights( scene.elem.lights, data.lights ),
+						lastupdated:scene.elem.lastupdated,
+						run: '<button data-idx="{0}" class="btn btn-sm althue-runscene"> <i  class="fa fa-play" aria-hidden="true" title="Run"></i> Run</button>'.format(scene.id)
 					})
 				})
 				var html = ALTHUE.array2Table(model,'id',[],'My Hue Scenes','ALTHue-cls','ALTHue-scenestbl',false)
 				set_panel_html(html);
 				jQuery(".althue-runscene").click(function(e){
+					
 					var id = jQuery(this).data('idx');
 					var that = jQuery(this);
-					var url = ALTHUE.buildHandlerUrl(deviceID,"runScene",{sceneid:id});
+					// var url = ALTHUE.buildHandlerUrl(deviceID,"runScene",{sceneid:id});
+					var url = ALTHUE.buildUPnPActionUrl(deviceID,ALTHUE.ALTHUE_Svs,"RunHueScene",{hueSceneID:id})
 					$.get(url).fail( function() {
 						alert("action did not complete successfully")
 					})

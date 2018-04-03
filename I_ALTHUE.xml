@@ -40,6 +40,14 @@
 		</action>
 
 		<action>
+		  <serviceId>urn:upnp-org:serviceId:althue1</serviceId>
+		  <name>RunHueScene</name>
+		  <run>
+				RunHueScene(lul_device,lul_settings.hueSceneID)
+		  </run>
+		</action>
+
+		<action>
 		  <serviceId>urn:upnp-org:serviceId:TemperatureSensor1</serviceId>
 		  <name>GetCurrentTemperature</name>
 		  <run>

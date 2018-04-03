@@ -63,6 +63,9 @@ local function isempty(s)
   return s == nil or s == ""
 end
 
+------------------------------------------------
+-- VERA Device Utils
+------------------------------------------------
 local function findTHISDevice()
   for k,v in pairs(luup.devices) do
 	if( v.device_type == devicetype ) then
@@ -70,6 +73,43 @@ local function findTHISDevice()
 	end
   end
   return -1
+end
+
+local function getParent(lul_device)
+  return luup.devices[lul_device].device_num_parent
+end
+
+local function getAltID(lul_device)
+  return luup.devices[lul_device].id
+end
+
+-----------------------------------
+-- from a altid, find a child device
+-- returns 2 values
+-- a) the index === the device ID
+-- b) the device itself luup.devices[id]
+-----------------------------------
+local function findChild( lul_parent, altid )
+  -- debug(string.format("findChild(%s,%s)",lul_parent,altid))
+  for k,v in pairs(luup.devices) do
+	if( getParent(k)==lul_parent) then
+	  if( v.id==altid) then
+		return k,v
+	  end
+	end
+  end
+  return nil,nil
+end
+
+local function getParent(lul_device)
+  return luup.devices[lul_device].device_num_parent
+end
+
+local function getRoot(lul_device)
+  while( getParent(lul_device)>0 ) do
+	lul_device = getParent(lul_device)
+  end
+  return lul_device
 end
 
 ------------------------------------------------
@@ -213,10 +253,6 @@ function string:trim()
   return self:match "^%s*(.-)%s*$"
 end
 
-------------------------------------------------
--- VERA Device Utils
-------------------------------------------------
-
 local function tablelength(T)
   local count = 0
   if (T~=nil) then
@@ -225,45 +261,8 @@ local function tablelength(T)
   return count
 end
 
-local function getParent(lul_device)
-  return luup.devices[lul_device].device_num_parent
-end
-
-local function getAltID(lul_device)
-  return luup.devices[lul_device].id
-end
-
------------------------------------
--- from a altid, find a child device
--- returns 2 values
--- a) the index === the device ID
--- b) the device itself luup.devices[id]
------------------------------------
-local function findChild( lul_parent, altid )
-  -- debug(string.format("findChild(%s,%s)",lul_parent,altid))
-  for k,v in pairs(luup.devices) do
-	if( getParent(k)==lul_parent) then
-	  if( v.id==altid) then
-		return k,v
-	  end
-	end
-  end
-  return nil,nil
-end
-
-local function getParent(lul_device)
-  return luup.devices[lul_device].device_num_parent
-end
-
-local function getRoot(lul_device)
-  while( getParent(lul_device)>0 ) do
-	lul_device = getParent(lul_device)
-  end
-  return lul_device
-end
-
 ------------------------------------------------
--- Communication TO ALTHUE system
+-- Communication TO HUE system
 ------------------------------------------------
 local function ALTHueHttpCall(lul_device,verb,cmd,body)
 	local result = {}
@@ -410,12 +409,12 @@ function myALTHUE_Handler(lul_request, lul_parameters, lul_outputformat)
 		return json.encode(data or {}), "application/json"
 	  end, 
 	  
-	  ["runScene"]=
-	  function(params)
-		local id = lul_parameters["sceneid"] or ""
-		local data,msg = runScene(deviceID,id)
-		return json.encode(data or {}), "application/json"
-	  end
+	  -- ["runScene"]=
+	  -- function(params)
+		-- local id = lul_parameters["sceneid"] or ""
+		-- local data,msg = runScene(deviceID,id)
+		-- return json.encode(data or {}), "application/json"
+	  -- end
   }
   -- actual call
   lul_html , mime_type = switch(command,action)(lul_parameters)
@@ -426,7 +425,7 @@ function myALTHUE_Handler(lul_request, lul_parameters, lul_outputformat)
 end
 
 ------------------------------------------------
--- STARTUP Sequence
+-- Color Utilities
 ------------------------------------------------
 local function round(num, numDecimalPlaces)
   local mult = 10^(numDecimalPlaces or 0)
@@ -523,6 +522,9 @@ local function rgb_to_cie(red, green, blue)
 	return x1, y1
 end
 
+------------------------------------------------
+-- UPNP Actions Sequence
+------------------------------------------------
 local function HueLampSetState(lul_device,body)
 	debug(string.format("HueLampSetState(%s,%s)",lul_device,body))
 	lul_device = tonumber(lul_device)
@@ -610,6 +612,102 @@ function getCurrentTemperature(lul_device)
   return luup.variable_get("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", lul_device)
 end
 	
+
+------------------------------------------------
+-- UPNP actions Sequence
+------------------------------------------------
+local function setDebugMode(lul_device,newDebugMode)
+  lul_device = tonumber(lul_device)
+  newDebugMode = tonumber(newDebugMode) or 0
+  debug(string.format("setDebugMode(%d,%d)",lul_device,newDebugMode))
+  luup.variable_set(ALTHUE_SERVICE, "Debug", newDebugMode, lul_device)
+  if (newDebugMode==1) then
+	DEBUG_MODE=true
+  else
+	DEBUG_MODE=false
+  end
+end
+
+local function registerNewUser(lul_device)
+	-- must get a new user ID
+	local data,msg = getNewUserID(lul_device)
+	debug(string.format("return data: %s", json.encode(data)))
+	if ((data==nil) or (data[1].error ~= nil)) then
+		error("New User is not accepted by the bridge, did you press the Link button on the Bridge ? : " .. data[1].error.description);
+		setVariableIfChanged(ALTHUE_SERVICE, "Credentials", "", lul_device)
+		return false
+	end
+	-- [{"success":{"username": "83b7780291a6ceffbe0bd049104df"}}]
+	credentials = data[1].success.username
+	setVariableIfChanged(ALTHUE_SERVICE, "Credentials", credentials, lul_device)
+	return true
+end
+
+local function verifyAccess(lul_device)
+	debug(string.format("verifyAccess(%s)",lul_device))
+	local credentials = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
+	if (isempty(credentials)) then
+		-- UserMessage(string.format("The plugin is not linked to your Hue Bridge. Proceed with pairing in settings page"),TASK_ERROR)
+		return false
+	end
+
+	local data,msg = getTimezones(lul_device)
+	if ( (data==nil) or (tablelength(data)<1) ) then
+		-- UserMessage(string.format("The plugin is not linked to your Hue Bridge. Proceed with pairing in settings page"),TASK_ERROR)
+		return false
+	end
+	debug(string.format("getTimezones returns data: %s", json.encode(data)))
+	
+	if (data[1].error ~= nil) then
+		warning("User is not registered to Philips Hue Bridge : " .. data[1].error.description);
+		return false
+	end
+	
+	debug(string.format("communication with Hue Bridge seems ok: %s", json.encode(data)))
+	setVariableIfChanged(ALTHUE_SERVICE, "IconCode", 100, lul_device)
+	return true
+end
+
+function RunHueScene(lul_device,hueSceneID)
+	hueSceneID = hueSceneID or ""
+	debug(string.format("RunHueScene(%s)",hueSceneID))
+	local data,msg = runScene(lul_device,hueSceneID)
+	return (data ~= nil),msg
+end
+
+function UnpairWithHue(lul_device)
+	debug(string.format("UnpairWithHue(%s)",lul_device))
+	local credentials = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
+	setVariableIfChanged(ALTHUE_SERVICE, "IconCode", 0, lul_device)
+	if (isempty(credentials)) then
+		warning("The plugin is not linked to your Hue Bridge. Unpair cannot proceed")
+		return false
+	end
+	local data,msg = deleteUserID(lul_device,credentials)
+	setVariableIfChanged(ALTHUE_SERVICE, "Credentials", "", lul_device)
+	if ( (data==nil) or (tablelength(data)<1) ) then
+		warning(string.format("The plugin is not linked to your Hue Bridge. make sure you have pressed the Hue bridge central button and reload luup"))
+		return false
+	end
+	debug(string.format("deleteUserID returns data:%s, msg:%s", json.encode(data),msg or ""))
+	if (data[1].success == nil) then
+		error(string.format("Hue bridge did not accept the removal of the user from the whitelist"))
+		return false
+	end
+	return true
+end
+
+function PairWithHue(lul_device)
+	debug(string.format("PairWithHue(%s)",lul_device))
+	if (verifyAccess(lul_device) == false ) then
+		return registerNewUser(lul_device)
+	end
+	return true
+end
+
+--------------------------------------------------------
+-- Core engine 
+--------------------------------------------------------
 function refreshHueData(lul_device,norefresh)
 	local success=true
 	norefresh = norefresh or false
@@ -697,91 +795,6 @@ function refreshHueData(lul_device,norefresh)
 	end
 	debug(string.format("refreshHueData returns  success is : %s",tostring(success)))
 	return success
-end
-
-------------------------------------------------
--- UPNP actions Sequence
-------------------------------------------------
-local function setDebugMode(lul_device,newDebugMode)
-  lul_device = tonumber(lul_device)
-  newDebugMode = tonumber(newDebugMode) or 0
-  debug(string.format("setDebugMode(%d,%d)",lul_device,newDebugMode))
-  luup.variable_set(ALTHUE_SERVICE, "Debug", newDebugMode, lul_device)
-  if (newDebugMode==1) then
-	DEBUG_MODE=true
-  else
-	DEBUG_MODE=false
-  end
-end
-
-local function registerNewUser(lul_device)
-	-- must get a new user ID
-	local data,msg = getNewUserID(lul_device)
-	debug(string.format("return data: %s", json.encode(data)))
-	if ((data==nil) or (data[1].error ~= nil)) then
-		error("New User is not accepted by the bridge, did you press the Link button on the Bridge ? : " .. data[1].error.description);
-		setVariableIfChanged(ALTHUE_SERVICE, "Credentials", "", lul_device)
-		return false
-	end
-	-- [{"success":{"username": "83b7780291a6ceffbe0bd049104df"}}]
-	credentials = data[1].success.username
-	setVariableIfChanged(ALTHUE_SERVICE, "Credentials", credentials, lul_device)
-	return true
-end
-
-local function verifyAccess(lul_device)
-	debug(string.format("verifyAccess(%s)",lul_device))
-	local credentials = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
-	if (isempty(credentials)) then
-		-- UserMessage(string.format("The plugin is not linked to your Hue Bridge. Proceed with pairing in settings page"),TASK_ERROR)
-		return false
-	end
-
-	local data,msg = getTimezones(lul_device)
-	if ( (data==nil) or (tablelength(data)<1) ) then
-		-- UserMessage(string.format("The plugin is not linked to your Hue Bridge. Proceed with pairing in settings page"),TASK_ERROR)
-		return false
-	end
-	debug(string.format("getTimezones returns data: %s", json.encode(data)))
-	
-	if (data[1].error ~= nil) then
-		warning("User is not registered to Philips Hue Bridge : " .. data[1].error.description);
-		return false
-	end
-	
-	debug(string.format("communication with Hue Bridge seems ok: %s", json.encode(data)))
-	setVariableIfChanged(ALTHUE_SERVICE, "IconCode", 100, lul_device)
-	return true
-end
-
-function UnpairWithHue(lul_device)
-	debug(string.format("UnpairWithHue(%s)",lul_device))
-	local credentials = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
-	setVariableIfChanged(ALTHUE_SERVICE, "IconCode", 0, lul_device)
-	if (isempty(credentials)) then
-		warning("The plugin is not linked to your Hue Bridge. Unpair cannot proceed")
-		return false
-	end
-	local data,msg = deleteUserID(lul_device,credentials)
-	setVariableIfChanged(ALTHUE_SERVICE, "Credentials", "", lul_device)
-	if ( (data==nil) or (tablelength(data)<1) ) then
-		warning(string.format("The plugin is not linked to your Hue Bridge. make sure you have pressed the Hue bridge central button and reload luup"))
-		return false
-	end
-	debug(string.format("deleteUserID returns data:%s, msg:%s", json.encode(data),msg or ""))
-	if (data[1].success == nil) then
-		error(string.format("Hue bridge did not accept the removal of the user from the whitelist"))
-		return false
-	end
-	return true
-end
-
-function PairWithHue(lul_device)
-	debug(string.format("PairWithHue(%s)",lul_device))
-	if (verifyAccess(lul_device) == false ) then
-		return registerNewUser(lul_device)
-	end
-	return true
 end
 
 local function SyncSensors(lul_device,data,child_devices)
