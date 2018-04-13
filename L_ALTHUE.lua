@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.8"
+local version		= "v0.9"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -722,7 +722,7 @@ function refreshHueData(lul_device,norefresh)
 	local zone_diff = os.difftime(os.time(d1), os.time(d2))
 
 	local data,msg = getLights(lul_device)
-	if (data~=nil) and (data["1"] ~=nil) then
+	if (data~=nil) and (tablelength(data)>0) then
 		for k,v in pairs(data) do
 			local idx = tonumber(k)
 			local childId,child = findChild( lul_device, v.uniqueid )
@@ -747,7 +747,7 @@ function refreshHueData(lul_device,norefresh)
 	debug(string.format("After Lights, success is : %s",tostring(success)))
 	if (success) then
 		data,msg = getSensors(lul_device)
-		if (data~=nil) and (data["1"] ~=nil) then
+		if (data~=nil) and (tablelength(data)>0) then
 			for k,v in pairs(data) do
 				local idx = tonumber(k)
 				local childId,child = findChild( lul_device, v.uniqueid )
@@ -799,7 +799,7 @@ end
 
 local function SyncSensors(lul_device,data,child_devices)
 	debug(string.format("SyncSensors(%s)",lul_device))
-	if (data~=nil) and (data["1"] ~=nil) then
+	if (data~=nil) and (tablelength(data)>0) then
 		for k,v in pairs(data) do
 			local idx = tonumber(k)
 			local mapentry = SensorTypes[ v.type ]
@@ -826,7 +826,7 @@ end
 
 local function SyncLights(lul_device,data,child_devices)	 
 	debug(string.format("SyncLights(%s)",lul_device))
-	if (data~=nil) and (data["1"] ~=nil) then
+	if (data~=nil) and (tablelength(data)>0) then
 		-- for all children device, iterate
 		MapUID2Index={}
 		local vartable = {
