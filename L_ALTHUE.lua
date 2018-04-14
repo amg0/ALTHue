@@ -9,9 +9,9 @@
 local MSG_CLASS		= "ALTHUE"
 local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
-local this_device	= nil
+-- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.91"
+local version		= "v0.92"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -66,14 +66,14 @@ end
 ------------------------------------------------
 -- VERA Device Utils
 ------------------------------------------------
-local function findTHISDevice()
-  for k,v in pairs(luup.devices) do
-	if( v.device_type == devicetype ) then
-	  return k
-	end
-  end
-  return -1
-end
+-- local function findTHISDevice()
+  -- for k,v in pairs(luup.devices) do
+	-- if( v.device_type == devicetype ) then
+	  -- return k
+	-- end
+  -- end
+  -- return -1
+-- end
 
 local function getParent(lul_device)
   return luup.devices[lul_device].device_num_parent
@@ -385,7 +385,7 @@ function myALTHUE_Handler(lul_request, lul_parameters, lul_outputformat)
 	command ="default"
   end
 
-  local deviceID = this_device or tonumber(lul_parameters["DeviceNum"] or findTHISDevice() )
+  local deviceID = tonumber( lul_parameters["DeviceNum"] ) -- or findTHISDevice() )
 
   -- switch table
   local action = {
@@ -530,7 +530,7 @@ local function HueLampSetState(lul_device,body)
 	lul_device = tonumber(lul_device)
 	local lul_root = getRoot(lul_device)
 	local childid = luup.devices[lul_device].id;
-	local hueindex = MapUID2Index[ childid ]
+	local hueindex = MapUID2Index[lul_device][ childid ]
 	if (hueindex ~= nil) then
 		local data,msg = ALTHueHttpCall(
 			lul_root,
@@ -651,12 +651,13 @@ local function verifyAccess(lul_device)
 		return false
 	end
 
-	local data,msg = getTimezones(lul_device)
+	local data,msg = getHueConfig(lul_device)
+	-- local data,msg = getTimezones(lul_device)
 	if ( (data==nil) or (tablelength(data)<1) ) then
 		-- UserMessage(string.format("The plugin is not linked to your Hue Bridge. Proceed with pairing in settings page"),TASK_ERROR)
 		return false
 	end
-	debug(string.format("getTimezones returns data: %s", json.encode(data)))
+	debug(string.format("getHueConfig returns data: %s", json.encode(data)))
 	
 	if (data[1].error ~= nil) then
 		warning("User is not registered to Philips Hue Bridge : " .. data[1].error.description);
@@ -815,7 +816,7 @@ local function SyncSensors(lul_device,data,child_devices)
 					table.concat(mapentry.vartable, "\n"),	-- params
 					false						-- not embedded
 				)
-				MapUID2Index[ v.uniqueid ]=k
+				MapUID2Index[lul_device][ v.uniqueid ]=k
 			end
 		end	
 	else
@@ -828,7 +829,6 @@ local function SyncLights(lul_device,data,child_devices)
 	debug(string.format("SyncLights(%s)",lul_device))
 	if (data~=nil) and (tablelength(data)>0) then
 		-- for all children device, iterate
-		MapUID2Index={}
 		local vartable = {
 			"urn:upnp-org:serviceId:SwitchPower1,Status=0",
 			"urn:upnp-org:serviceId:SwitchPower1,Target=0",
@@ -849,7 +849,7 @@ local function SyncLights(lul_device,data,child_devices)
 				false,						-- not embedded
 				false						-- invisible
 			)
-			MapUID2Index[ v.uniqueid ]=k
+			MapUID2Index[lul_device][ v.uniqueid ]=k
 		end
 		
 	else
@@ -898,6 +898,14 @@ local function startEngine(lul_device)
 	debug(string.format("startEngine(%s)",lul_device))
 	local success=false
 	lul_device = tonumber(lul_device)
+	if (MapUID2Index==nil) then
+		MapUID2Index={}
+		MapUID2Index[lul_device]={}
+	else
+		if (MapUID2Index[lul_device]==nil) then
+			MapUID2Index[lul_device]={}
+		end
+	end
 
 	local data,msg = getHueConfig(lul_device)
 	debug(string.format("return data: %s", json.encode(data or "nil")))
@@ -1019,7 +1027,7 @@ end
 
 function initstatus(lul_device)
   lul_device = tonumber(lul_device)
-  this_device = lul_device
+  -- this_device = lul_device
   log("initstatus("..lul_device..") starting version: "..version)
   checkVersion(lul_device)
   hostname = getIP()
