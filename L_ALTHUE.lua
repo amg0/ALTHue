@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.9"
+local version		= "v0.91"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -134,19 +134,19 @@ local function getSetVariableIfEmpty(serviceId, name, deviceId, default)
 end
 
 local function setVariableIfChanged(serviceId, name, value, deviceId)
-  debug(string.format("setVariableIfChanged(%s,%s,%s,%s)",serviceId, name, value, deviceId))
+  debug(string.format("setVariableIfChanged(%s,%s,%s,%s)",serviceId, name, value or 'nil', deviceId))
   local curValue = luup.variable_get(serviceId, name, tonumber(deviceId)) or ""
   value = value or ""
   if (tostring(curValue)~=tostring(value)) then
-	luup.variable_set(serviceId, name, value, tonumber(deviceId))
+	luup.variable_set(serviceId, name, value or '', tonumber(deviceId))
   end
 end
 
 local function setAttrIfChanged(name, value, deviceId)
-  debug(string.format("setAttrIfChanged(%s,%s,%s)",name, value, deviceId))
+  debug(string.format("setAttrIfChanged(%s,%s,%s)",name, value or 'nil', deviceId))
   local curValue = luup.attr_get(name, deviceId)
   if ((value ~= curValue) or (curValue == nil)) then
-	luup.attr_set(name, value, deviceId)
+	luup.attr_set(name, value or '', deviceId)
 	return true
   end
   return value
