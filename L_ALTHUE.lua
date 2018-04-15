@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.92"
+local version		= "v0.93"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -530,7 +530,7 @@ local function HueLampSetState(lul_device,body)
 	lul_device = tonumber(lul_device)
 	local lul_root = getRoot(lul_device)
 	local childid = luup.devices[lul_device].id;
-	local hueindex = MapUID2Index[lul_device][ childid ]
+	local hueindex = MapUID2Index[ childid ]
 	if (hueindex ~= nil) then
 		local data,msg = ALTHueHttpCall(
 			lul_root,
@@ -659,7 +659,7 @@ local function verifyAccess(lul_device)
 	end
 	debug(string.format("getHueConfig returns data: %s", json.encode(data)))
 	
-	if (data[1].error ~= nil) then
+	if not (data and data["whitelist"]) then	-- if (data[1].error ~= nil) then
 		warning("User is not registered to Philips Hue Bridge : " .. data[1].error.description);
 		return false
 	end
@@ -816,7 +816,7 @@ local function SyncSensors(lul_device,data,child_devices)
 					table.concat(mapentry.vartable, "\n"),	-- params
 					false						-- not embedded
 				)
-				MapUID2Index[lul_device][ v.uniqueid ]=k
+				MapUID2Index[ v.uniqueid ]=k
 			end
 		end	
 	else
@@ -849,7 +849,7 @@ local function SyncLights(lul_device,data,child_devices)
 				false,						-- not embedded
 				false						-- invisible
 			)
-			MapUID2Index[lul_device][ v.uniqueid ]=k
+			MapUID2Index[ v.uniqueid ]=k
 		end
 		
 	else
@@ -898,14 +898,7 @@ local function startEngine(lul_device)
 	debug(string.format("startEngine(%s)",lul_device))
 	local success=false
 	lul_device = tonumber(lul_device)
-	if (MapUID2Index==nil) then
-		MapUID2Index={}
-		MapUID2Index[lul_device]={}
-	else
-		if (MapUID2Index[lul_device]==nil) then
-			MapUID2Index[lul_device]={}
-		end
-	end
+	MapUID2Index={}
 
 	local data,msg = getHueConfig(lul_device)
 	debug(string.format("return data: %s", json.encode(data or "nil")))
