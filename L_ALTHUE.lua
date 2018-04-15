@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.93"
+local version		= "v0.94"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -660,7 +660,7 @@ local function verifyAccess(lul_device)
 	debug(string.format("getHueConfig returns data: %s", json.encode(data)))
 	
 	if not (data and data["whitelist"]) then	-- if (data[1].error ~= nil) then
-		warning("User is not registered to Philips Hue Bridge : " .. data[1].error.description);
+		warning("User is not registered to Philips Hue Bridge : " .. (data[1] and data[1].error.description or "Not Authorized"));
 		return false
 	end
 	
@@ -800,6 +800,7 @@ end
 
 local function SyncSensors(lul_device,data,child_devices)
 	debug(string.format("SyncSensors(%s)",lul_device))
+	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
 	if (data~=nil) and (tablelength(data)>0) then
 		for k,v in pairs(data) do
 			local idx = tonumber(k)
@@ -809,7 +810,7 @@ local function SyncSensors(lul_device,data,child_devices)
 				luup.chdev.append(
 					lul_device, child_devices,
 					v.uniqueid,					-- children map index is altid
-					NAME_PREFIX..v.name,		-- children map name attribute is device name
+					NamePrefix..v.name,		-- children map name attribute is device name
 					mapentry.dtype,				-- children device type
 					mapentry.dfile,				-- children D-file
 					"", 						-- children I-file
@@ -827,6 +828,7 @@ end
 
 local function SyncLights(lul_device,data,child_devices)	 
 	debug(string.format("SyncLights(%s)",lul_device))
+	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
 	if (data~=nil) and (tablelength(data)>0) then
 		-- for all children device, iterate
 		local vartable = {
@@ -841,7 +843,7 @@ local function SyncLights(lul_device,data,child_devices)
 			luup.chdev.append(
 				lul_device, child_devices,
 				v.uniqueid,					-- children map index is altid
-				NAME_PREFIX..v.name,		-- children map name attribute is device name
+				NamePrefix..v.name,		-- children map name attribute is device name
 				mapentry.dtype,				-- children device type
 				mapentry.dfile,				-- children D-file
 				"", 						-- children I-file
@@ -861,11 +863,12 @@ end
 
 local function InitDevices(lul_device,data)	 
 	debug(string.format("InitDevices(%s) MapUID2Index is: %s",lul_device,json.encode(MapUID2Index)))
+	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
 	for k,v in pairs(data) do
 		if (v.uniqueid~=nil) then	-- Hue Daylight sensor does not have uniqueID
 			local childId,child = findChild( lul_device, v.uniqueid )
 			if (childId ~= nil) then
-				setAttrIfChanged("name", NAME_PREFIX..v.name, childId)
+				setAttrIfChanged("name", NamePrefix..v.name, childId)
 				setAttrIfChanged("manufacturer", v.manufacturername, childId)
 				setAttrIfChanged("model", v.modelid, childId)
 			-- unsuportedf devices wont be found, they have been filtered out at creationg time
