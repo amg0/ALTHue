@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.94"
+local version		= "v0.95"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -24,6 +24,12 @@ local LightTypes = {
 	["Color temperature light"] = 	{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
 	["Color light"] = 				{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
 	["Dimmable light"] = 			{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
+
+	-- proposal from cybrmage for other devices
+	["On/Off light"] =              {  dtype="urn:schemas-upnp-org:device:BinaryLight:1" , dfile="D_BinaryLight1.xml" },
+	["Color dimmable light"] =		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight1.xml" },
+
+	-- default
 	["Default"] = 					{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" }
 }
 local SensorTypes = {
@@ -561,7 +567,16 @@ end
 function UserSetPowerTarget(lul_device,newTargetValue)
 	debug(string.format("UserSetPowerTarget(%s,%s)",lul_device,newTargetValue))
 	newTargetValue = tonumber(newTargetValue)
-	UserSetLoadLevelTarget(lul_device, (newTargetValue>0) and "100" or "0" )
+	-- special case for cybrmage ZHA Securifi device ( power plug )
+	if (luup.devices[lul_device].device_type == LightTypes["On/Off light"].dtype) then
+		local v = (newTargetValue > 0) and "1" or "0"
+		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Target", v, lul_device)
+		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Status", v, lul_device)
+		
+		HueLampSetState(lul_device,string.format('{"on": %s}',(newTargetValue > 0) and "true" or "false"))
+	else
+		UserSetLoadLevelTarget(lul_device, (newTargetValue>0) and "100" or "0" )
+	end
 end
 
 function UserToggleState(lul_device)
