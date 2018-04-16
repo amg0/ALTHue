@@ -438,6 +438,49 @@ local function round(num, numDecimalPlaces)
   return math.floor(num * mult + 0.5) / mult
 end
 
+-- https://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+local function hsb_to_rgb(h, s, v) 
+	-- Hue of the light. This is a wrapping value between 0 and 65535. Note, that hue/sat values are hardware dependent which means that programming two devices with the same value does not garantuee that they will be the same color. Programming 0 and 65535 would mean that the light will resemble the color red, 21845 for green and 43690 for blue.
+	-- Saturation of the light. 254 is the most saturated (colored) and 0 is the least saturated (white).
+	-- Brightness of the light. This is a scale from the minimum brightness the light is capable of, 1, to the maximum capable brightness, 254.
+	h = tonumber(h or 0) / 65535
+	s = tonumber(s or 0) / 254
+	v = tonumber(v or 0) / 254
+    local r, g, b, i, f, p, q, t
+    i = math.floor(h * 6)
+    f = h * 6 - i
+    p = v * (1 - s)
+    q = v * (1 - f * s)
+    t = v * (1 - (1 - f) * s)
+	local modulo = (i % 6)
+	if (i==0) then
+		r = v
+		g = t
+		b = p
+	elseif (i==1) then
+		r = q
+		g = v
+		b = p
+	elseif (i==2) then
+		r = p
+		g = v
+		b = t
+	elseif (i==3) then
+		r = p
+		g = q
+		b = v
+	elseif (i==4) then
+		r = t
+		g = p
+		b = v
+	elseif (i==5) then
+		r = v
+		g = p
+		b = q
+	end
+    return round(r * 255), round(g * 255), round(b * 255)
+end
+
 local function cie_to_rgb(x, y, brightness)
 	-- //Set to maximum brightness if no custom value was given (Not the slick ECMAScript 6 way for compatibility reasons)
 	x = tonumber(x)
@@ -488,15 +531,6 @@ local function cie_to_rgb(x, y, brightness)
 	red 	= round(red * 255);
 	green 	= round(green * 255);
 	blue 	= round(blue * 255);
-
-	-- if (isNaN(red))
-		-- red = 0;
-
-	-- if (isNaN(green))
-		-- green = 0;
-
-	-- if (isNaN(blue))
-		-- blue = 0;
 		
 	return red, green, blue
 end
@@ -518,12 +552,6 @@ local function rgb_to_cie(red, green, blue)
 	-- //Calculate the xy values from the XYZ values
 	local x1 		= math.floor( 10000 * (X / (X + Y + Z)) )/10000  --.toFixed(4);
 	local y1 		= math.floor( 10000 * (Y / (X + Y + Z)) )/10000  --.toFixed(4);
-
-	-- if (isNaN(x1))
-		-- x1 = 0
-
-	-- if (isNaN(y1))
-		-- y1 = 0
 
 	return x1, y1
 end
@@ -752,9 +780,16 @@ function refreshHueData(lul_device,norefresh)
 				setVariableIfChanged("urn:upnp-org:serviceId:SwitchPower1", "Target", status, childId )
 				setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", bri, childId )
 				setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", bri, childId )
-				if (v.state.colormode ~= nil) and (v.state.colormode == "xy") then
-					local r,g,b = cie_to_rgb(v.state.xy[1], v.state.xy[2], v.state.bri)
-					setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=0,1=0,2=%s,3=%s,4=%s",r,g,b), childId )
+				if (v.state.colormode ~= nil) then
+					if (v.state.colormode == "xy") then
+						local r,g,b = cie_to_rgb(v.state.xy[1], v.state.xy[2], v.state.bri)
+						setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=0,1=0,2=%s,3=%s,4=%s",r,g,b), childId )
+					elseif (v.state.colormode == "hs") then
+						local r,g,b = hsb_to_rgb(v.state.hue, v.state.sat, v.state.bri)
+						setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=0,1=0,2=%s,3=%s,4=%s",r,g,b), childId )
+					elseif (v.state.colormode == "ct") then
+						-- local r,g,b
+					end
 				end
 			else
 				warning(string.format("could not find childId for Hue %s , uniqueid:%s",idx,v.uniqueid))
