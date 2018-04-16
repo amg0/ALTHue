@@ -789,6 +789,7 @@ function refreshHueData(lul_device,norefresh)
 						setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=0,1=0,2=%s,3=%s,4=%s",r,g,b), childId )
 					elseif (v.state.colormode == "ct") then
 						-- local r,g,b
+						-- https://github.com/birkirb/hue-lib/blob/master/lib/hue/colors/color_temperature.rb
 					end
 				end
 			else
