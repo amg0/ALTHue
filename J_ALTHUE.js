@@ -108,6 +108,7 @@ var ALTHUE = (function(api,$) {
 						name:"<span title='{1}'>{0}</span>".format(scene.elem.name,scene.id),
 						lights: formatLights( scene.elem.lights, data.lights ),
 						lastupdated:scene.elem.lastupdated,
+						id:scene.id,
 						run: '<button data-idx="{0}" class="btn btn-sm althue-runscene"> <i  class="fa fa-play" aria-hidden="true" title="Run"></i> Run</button>'.format(scene.id)
 					})
 				})
