@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.95"
+local version		= "v0.96"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -752,6 +752,10 @@ function refreshHueData(lul_device,norefresh)
 				setVariableIfChanged("urn:upnp-org:serviceId:SwitchPower1", "Target", status, childId )
 				setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", bri, childId )
 				setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", bri, childId )
+				if (v.state.colormode ~= nil) and (v.state.colormode == "xy") then
+					local r,g,b = cie_to_rgb(v.state.xy[1], v.state.xy[2], v.state.bri)
+					setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=0,1=0,2=%s,3=%s,4=%s",r,g,b), childId )
+				end
 			else
 				warning(string.format("could not find childId for Hue %s , uniqueid:%s",idx,v.uniqueid))
 			end
