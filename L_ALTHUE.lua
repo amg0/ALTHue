@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.96"
+local version		= "v0.97"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -438,8 +438,56 @@ local function round(num, numDecimalPlaces)
   return math.floor(num * mult + 0.5) / mult
 end
 
--- https://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+local function k_to_mir(k)
+    return 1000000 / k
+end
+
+local function mir_to_k(m)
+    return 1000000 / m
+end
+
+local function enforceByte(r)
+	if (r<0) then 
+		r=0 
+	elseif (r>255) then 
+		r=255 
+	end
+	return (r)
+end
+
+local function ct_to_rgb(ct)
+	-- The Mired Color temperature of the light. 2012 connected lights are capable of 153 (6500K) to 500 (2000K).
+	-- M = 10^6 / K
+	-- https://github.com/birkirb/hue-lib/blob/master/lib/hue/colors/color_temperature.rb
+	local temp  = mir_to_k(ct) / 100
+	local r,g,b=0,0,0
+	
+	if (temp<=66) then
+		r = 255
+	else
+		r = enforceByte( 329.698727446 * ((temp - 60) ^ -0.1332047592) )
+	end
+	
+	if (temp<=66) then
+		g = enforceByte( 99.4708025861 * math.log(temp) - 161.1195681661 )
+	else
+		g = enforceByte( 288.1221695283 * ((temp-60) ^ -0.0755148492) )
+	end
+	
+	if (temp>=66) then
+		b = 255
+	else
+		if (temp<=19) then
+			b = 0
+		else
+			b = enforceByte( 138.5177312231 * math.log(temp - 10) - 305.0447927307 )
+		end
+	end
+	return r,g,b
+end
+
 local function hsb_to_rgb(h, s, v) 
+	-- https://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 	-- Hue of the light. This is a wrapping value between 0 and 65535. Note, that hue/sat values are hardware dependent which means that programming two devices with the same value does not garantuee that they will be the same color. Programming 0 and 65535 would mean that the light will resemble the color red, 21845 for green and 43690 for blue.
 	-- Saturation of the light. 254 is the most saturated (colored) and 0 is the least saturated (white).
 	-- Brightness of the light. This is a scale from the minimum brightness the light is capable of, 1, to the maximum capable brightness, 254.
@@ -781,19 +829,20 @@ function refreshHueData(lul_device,norefresh)
 				setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", bri, childId )
 				setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", bri, childId )
 				if (v.state.colormode ~= nil) then
+					local r,g,b=0,0,0
 					if (v.state.colormode == "xy") then
-						local r,g,b = cie_to_rgb(v.state.xy[1], v.state.xy[2], v.state.bri)
-						setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=0,1=0,2=%s,3=%s,4=%s",r,g,b), childId )
+						r,g,b = cie_to_rgb(v.state.xy[1], v.state.xy[2], v.state.bri)
 					elseif (v.state.colormode == "hs") then
-						local r,g,b = hsb_to_rgb(v.state.hue, v.state.sat, v.state.bri)
-						setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=0,1=0,2=%s,3=%s,4=%s",r,g,b), childId )
+						r,g,b = hsb_to_rgb(v.state.hue, v.state.sat, v.state.bri)
 					elseif (v.state.colormode == "ct") then
-						-- local r,g,b
-						-- https://github.com/birkirb/hue-lib/blob/master/lib/hue/colors/color_temperature.rb
+						r,g,b = ct_to_rgb(v.state.ct)
+					else
+						warning(string.format("Unknown colormode:%s for Hue:%s, uniqueid:%s",v.state.colormode,idx,v.uniqueid))
 					end
+					setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=0,1=0,2=%s,3=%s,4=%s",r,g,b), childId )
 				end
 			else
-				warning(string.format("could not find childId for Hue %s , uniqueid:%s",idx,v.uniqueid))
+				warning(string.format("could not find childId for Hue:%s, uniqueid:%s",idx,v.uniqueid))
 			end
 		end		
 	else
