@@ -18,7 +18,7 @@
 			<serviceId>urn:upnp-org:serviceId:althue1</serviceId>
 			<name>Refresh</name>
 			<job>
-			refreshData(lul_device)
+			refreshHueData(lul_device,true)
 			return 4,0
 			</job>
 		</action>
