@@ -207,7 +207,7 @@ local function task(text, mode)
   end
 end
 
-local function clearTask()
+function clearTask()
   task("Clearing...", TASK_SUCCESS)
 end
 
@@ -1045,8 +1045,8 @@ function startupDeferred(lul_device)
 	end
 
 	if (debugmode=="1") then
-	DEBUG_MODE = true
-	UserMessage("Enabling debug mode for device:"..lul_device,TASK_BUSY)
+		DEBUG_MODE = true
+		UserMessage("Enabling debug mode for device:"..lul_device,TASK_BUSY)
 	end
 	local major,minor = 0,0
 	local tbl={}
