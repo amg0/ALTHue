@@ -315,7 +315,6 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 	debug(string.format("request:%s",request))
 	debug(string.format("code:%s",code))
 	debug(string.format("data:%s",data or ""))
-	luup.variable_set(ALTHUE_SERVICE, "LastValidComm", os.time(), lul_device)
 	return json.decode(data) ,""
 end
 
@@ -897,6 +896,9 @@ function refreshHueData(lul_device,norefresh)
 		local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
 		debug(string.format("programming next refreshHueData(%s) in %s sec",lul_device,period))
 		luup.call_delay("refreshHueData",period,tostring(lul_device))
+	end
+	if (success==true) then
+		luup.variable_set(ALTHUE_SERVICE, "LastValidComm", os.time(), lul_device)
 	end
 	debug(string.format("refreshHueData returns  success is : %s",tostring(success)))
 	return success
