@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v0.98"
+local version		= "v0.99"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -628,7 +628,7 @@ function UserSetLoadLevelTarget(lul_device,newValue)
 	local status = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
 	if (status ~= newValue) then
 		newValue = tonumber(newValue)
-		local bri = math.floor(1+253*newValue/100)
+		local bri = round(newValue * 2.55)
 		local val = (newValue ~= 0)
 		luup.variable_set("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", newValue, lul_device)
 		luup.variable_set("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", newValue, lul_device)
@@ -668,13 +668,11 @@ function UserSetColor(lul_device,newColorTarget)
 	debug(string.format("UserSetColor(%s,%s)",lul_device,newColorTarget))
 	local warmcool = string.sub(newColorTarget, 1, 1)
 	local value = tonumber(string.sub(newColorTarget, 2))
-	local range = math.floor((500-153)/2)	-- min K and max K supported,  middle is mid point W0 or D0
-	local mid = math.floor( (500+153)/2 )
-	local dir = (warmcool=="D") and -1 or 1
-	local offset = math.floor(value * range/255)
+	local kelvin = math.floor((value*13.72)) + ((warmcool=="D") and 5500 or 2000)
+	local mired = math.floor(1000000/kelvin)
 	local newValue = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
-	local bri = math.floor(1+253*tonumber(newValue)/100)
-	local body = string.format('{"on":true, "bri": %d, "ct":%s}', bri, tostring( mid + dir*offset ) )
+	local bri = round(tonumber(newValue) * 2.55)
+	local body = string.format('{"on":true, "bri": %d, "ct":%s}', bri, mired )
 	HueLampSetState(lul_device,body)
 end
 
@@ -819,7 +817,7 @@ function refreshHueData(lul_device,norefresh)
 			local childId,child = findChild( lul_device, v.uniqueid )
 			if (childId~=nil) then
 				local status = (v.state.on == true) and "1" or "0"
-				local bri = math.floor(100 * ((v.state.bri or 1)-1) / 253)
+				local bri = round(v.state.bri/2.55)
 				if (v.state.on == false) then
 					bri=0
 				end
@@ -828,17 +826,19 @@ function refreshHueData(lul_device,norefresh)
 				setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", bri, childId )
 				setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", bri, childId )
 				if (v.state.colormode ~= nil) then
-					local r,g,b=0,0,0
+					local w,d,r,g,b=0,0,0,0,0
 					if (v.state.colormode == "xy") then
 						r,g,b = cie_to_rgb(v.state.xy[1], v.state.xy[2], v.state.bri)
 					elseif (v.state.colormode == "hs") then
 						r,g,b = hsb_to_rgb(v.state.hue, v.state.sat, v.state.bri)
 					elseif (v.state.colormode == "ct") then
-						r,g,b = ct_to_rgb(v.state.ct)
+						local kelvin = math.floor(((1000000/v.state.ct)/100)+0.5)*100
+						w = (kelvin < 5450) and math.floor((kelvin-2000)/13.72) or 0
+						d = (kelvin > 5450) and math.floor((kelvin-5500)/13.72) or 0
 					else
 						warning(string.format("Unknown colormode:%s for Hue:%s, uniqueid:%s",v.state.colormode,idx,v.uniqueid))
 					end
-					setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=0,1=0,2=%s,3=%s,4=%s",r,g,b), childId )
+					setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=%s,1=%s,2=%s,3=%s,4=%s",w,d,r,g,b), childId )
 				end
 			else
 				warning(string.format("could not find childId for Hue:%s, uniqueid:%s",idx,v.uniqueid))
