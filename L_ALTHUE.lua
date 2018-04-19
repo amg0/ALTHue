@@ -530,6 +530,7 @@ end
 
 local function cie_to_rgb(x, y, brightness)
 	-- //Set to maximum brightness if no custom value was given (Not the slick ECMAScript 6 way for compatibility reasons)
+	-- debug(string.format("cie_to_rgb(%s,%s,%s)",x, y, brightness or ''))
 	x = tonumber(x)
 	y = tonumber(y)
 	brightness = tonumber(brightness)
@@ -579,7 +580,8 @@ local function cie_to_rgb(x, y, brightness)
 	green 	= round(green * 255);
 	blue 	= round(blue * 255);
 		
-	return red, green, blue
+	-- debug(string.format("cie_to_rgb R:%s G:%s B:%s",red,green,blue))
+	return enforceByte(red), enforceByte(green), enforceByte(blue)
 end
 
 local function rgb_to_cie(red, green, blue)
@@ -628,7 +630,7 @@ function UserSetLoadLevelTarget(lul_device,newValue)
 	local status = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
 	if (status ~= newValue) then
 		newValue = tonumber(newValue)
-		local bri = round(newValue * 2.55)
+		local bri = math.floor(1+253*newValue/100)
 		local val = (newValue ~= 0)
 		luup.variable_set("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", newValue, lul_device)
 		luup.variable_set("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", newValue, lul_device)
@@ -668,10 +670,15 @@ function UserSetColor(lul_device,newColorTarget)
 	debug(string.format("UserSetColor(%s,%s)",lul_device,newColorTarget))
 	local warmcool = string.sub(newColorTarget, 1, 1)
 	local value = tonumber(string.sub(newColorTarget, 2))
-	local kelvin = math.floor((value*13.72)) + ((warmcool=="D") and 5500 or 2000)
+	-- local kelvin = math.floor((value*13.72)) + ((warmcool=="D") and 5500 or 2000)
+	-- 153 (6500K) to 500 (2000K).
+	local mid = (6500+2000)/2
+	local range = 6500 - mid
+	local kelvin = mid + ( (warmcool=="D") and 1 or -1 ) * math.floor( value * range / 254 )
 	local mired = math.floor(1000000/kelvin)
 	local newValue = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
-	local bri = round(tonumber(newValue) * 2.55)
+	local bri = math.floor(1+253*tonumber(newValue)/100)
+	debug(string.format("UserSetColor target: %s => bri:%s ct:%s",newColorTarget, bri,mired))
 	local body = string.format('{"on":true, "bri": %d, "ct":%s}', bri, mired )
 	HueLampSetState(lul_device,body)
 end
@@ -817,7 +824,7 @@ function refreshHueData(lul_device,norefresh)
 			local childId,child = findChild( lul_device, v.uniqueid )
 			if (childId~=nil) then
 				local status = (v.state.on == true) and "1" or "0"
-				local bri = round(v.state.bri/2.55)
+				local bri = math.floor(100 * ((v.state.bri or 1)-1) / 253)
 				if (v.state.on == false) then
 					bri=0
 				end
@@ -828,7 +835,7 @@ function refreshHueData(lul_device,norefresh)
 				if (v.state.colormode ~= nil) then
 					local w,d,r,g,b=0,0,0,0,0
 					if (v.state.colormode == "xy") then
-						r,g,b = cie_to_rgb(v.state.xy[1], v.state.xy[2], v.state.bri)
+						r,g,b = cie_to_rgb(v.state.xy[1], v.state.xy[2], nil) -- v.state.bri
 					elseif (v.state.colormode == "hs") then
 						r,g,b = hsb_to_rgb(v.state.hue, v.state.sat, v.state.bri)
 					elseif (v.state.colormode == "ct") then
@@ -840,7 +847,6 @@ function refreshHueData(lul_device,norefresh)
 					end
 					setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=%s,1=%s,2=%s,3=%s,4=%s",w,d,r,g,b), childId )
 				end
-			else
 				warning(string.format("could not find childId for Hue:%s, uniqueid:%s",idx,v.uniqueid))
 			end
 		end		
