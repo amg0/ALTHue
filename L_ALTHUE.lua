@@ -665,16 +665,16 @@ end
 
 -- Warm White: Wx
 -- Cool White: Dx
--- Where x is between 0 and 255.
+-- W0     <--> W255  =  D0     <--> D255
+-- 2000K <--> 5500K = 5500K <--> 9000K
+-- mired range : 153 (6500K) to 500 (2000K).
+
 function UserSetColor(lul_device,newColorTarget)
 	debug(string.format("UserSetColor(%s,%s)",lul_device,newColorTarget))
 	local warmcool = string.sub(newColorTarget, 1, 1)
 	local value = tonumber(string.sub(newColorTarget, 2))
-	-- local kelvin = math.floor((value*13.72)) + ((warmcool=="D") and 5500 or 2000)
-	-- 153 (6500K) to 500 (2000K).
-	local mid = (6500+2000)/2
-	local range = 6500 - mid
-	local kelvin = mid + ( (warmcool=="D") and 1 or -1 ) * math.floor( value * range / 254 )
+	local kelvin = math.floor((value*3500/255)) + ((warmcool=="D") and 5500 or 2000)
+
 	local mired = math.floor(1000000/kelvin)
 	local newValue = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
 	local bri = math.floor(1+253*tonumber(newValue)/100)
@@ -840,8 +840,8 @@ function refreshHueData(lul_device,norefresh)
 						r,g,b = hsb_to_rgb(v.state.hue, v.state.sat, v.state.bri)
 					elseif (v.state.colormode == "ct") then
 						local kelvin = math.floor(((1000000/v.state.ct)/100)+0.5)*100
-						w = (kelvin < 5450) and math.floor((kelvin-2000)/13.72) or 0
-						d = (kelvin > 5450) and math.floor((kelvin-5500)/13.72) or 0
+						w = (kelvin < 5450) and (math.floor((kelvin-2000)/13.52) + 1) or 0
+						d = (kelvin > 5450) and (math.floor((kelvin-5500)/13.52) + 1) or 0
 					else
 						warning(string.format("Unknown colormode:%s for Hue:%s, uniqueid:%s",v.state.colormode,idx,v.uniqueid))
 					end
