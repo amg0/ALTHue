@@ -847,6 +847,7 @@ function refreshHueData(lul_device,norefresh)
 					end
 					setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=%s,1=%s,2=%s,3=%s,4=%s",w,d,r,g,b), childId )
 				end
+			else
 				warning(string.format("could not find childId for Hue:%s, uniqueid:%s",idx,v.uniqueid))
 			end
 		end		
