@@ -22,7 +22,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LCT001"
 				}
 			]
@@ -42,7 +42,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LCT001"
 				}
 			]
@@ -68,7 +68,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LCT007"
 				}
 			]
@@ -88,7 +88,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LCT007"
 				}
 			]
@@ -114,7 +114,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LCT002"
 				}
 			]
@@ -134,7 +134,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LCT002"
 				}
 			]
@@ -160,7 +160,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LCT003"
 				}
 			]
@@ -180,7 +180,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LCT003"
 				}
 			]
@@ -235,7 +235,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LST001"
 				}
 			]
@@ -271,7 +271,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LST001"
 				}
 			]
@@ -325,7 +325,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LST002"
 				}
 			]
@@ -361,7 +361,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LST002"
 				}
 			]
@@ -387,7 +387,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC006"
 				}
 			]
@@ -407,7 +407,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC006"
 				}
 			]
@@ -433,7 +433,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC010"
 				}
 			]
@@ -453,7 +453,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC010"
 				}
 			]
@@ -479,7 +479,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC001"
 				}
 			]
@@ -499,7 +499,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC001"
 				}
 			]
@@ -525,7 +525,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC011"
 				}
 			]
@@ -545,7 +545,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC011"
 				}
 			]
@@ -571,7 +571,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC012"
 				}
 			]
@@ -591,7 +591,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC012"
 				}
 			]
@@ -617,7 +617,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC007"
 				}
 			]
@@ -637,7 +637,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC007"
 				}
 			]
@@ -663,7 +663,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC013"
 				}
 			]
@@ -683,7 +683,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC013"
 				}
 			]
@@ -709,7 +709,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLM001"
 				}
 			]
@@ -729,7 +729,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLM001"
 				}
 			]
@@ -755,7 +755,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLM010"
 				}
 			]
@@ -775,7 +775,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLM010"
 				}
 			]
@@ -801,7 +801,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLM011"
 				}
 			]
@@ -821,7 +821,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLM011"
 				}
 			]
@@ -847,7 +847,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLM012"
 				}
 			]
@@ -867,7 +867,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLM012"
 				}
 			]
@@ -907,7 +907,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC020"
 				}
 			]
@@ -935,7 +935,7 @@
 					"service" : "urn:upnp-org:serviceId:Dimming1",
 					"variable" : "LoadLevelStatus",
 					"operator" : "==",
-					"value" : "0"
+					"value" : "0",
 					"model" : "LLC020"
 				}
 			]
@@ -963,7 +963,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": ">",
-                "value": "0"
+                "value": "0",
 	        "model": "HBL001"
                 }
             ]
@@ -986,7 +986,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": "==",
-                "value": "0"
+                "value": "0",
 		"model": "HBL001"
                 }
             ]
@@ -1015,7 +1015,7 @@
                     "service": "urn:upnp-org:serviceId:Dimming1",
                     "variable": "LoadLevelStatus",
                     "operator": ">",
-                    "value": "0"
+                    "value": "0",
 		    "model": "HBL002"
                 }
             ]
@@ -1038,7 +1038,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": "==",
-                "value": "0"
+                "value": "0",
 		"model": "HBL002"
                 }
             ]
@@ -1067,7 +1067,7 @@
                     "service": "urn:upnp-org:serviceId:Dimming1",
                     "variable": "LoadLevelStatus",
                     "operator": ">",
-                    "value": "0"
+                    "value": "0",
 		    "model": "HBL003"
                 }
             ]
@@ -1090,7 +1090,7 @@
                     "service": "urn:upnp-org:serviceId:Dimming1",
                     "variable": "LoadLevelStatus",
                     "operator": "==",
-                    "value": "0"
+                    "value": "0",
 		    "model": "HBL003"
                 }
             ]
@@ -1135,7 +1135,7 @@
                     "service": "urn:upnp-org:serviceId:Dimming1",
                     "variable": "LoadLevelStatus",
                     "operator": ">",
-                    "value": "0"
+                    "value": "0",
 		    "model": "HEL001"
                 }
             ]
@@ -1168,7 +1168,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": "==",
-                "value": "0"
+                "value": "0",
 		"model": "HEL001"
                 }
             ]
@@ -1213,7 +1213,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": ">",
-                "value": "0"
+                "value": "0",
 		"model": "HEL002"
                 }
             ]
@@ -1246,7 +1246,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": "==",
-                "value": "0"
+                "value": "0",
 		"model": "HEL002"
                 }
             ]
@@ -1291,7 +1291,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
 		"variable": "LoadLevelStatus",
                 "operator": ">",
-                "value": "0"
+                "value": "0",
 		"model": "HIL001"
                 }
             ]
@@ -1324,7 +1324,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": "==",
-                "value": "0"
+                "value": "0",
 		"model": "HIL001"
                 }
             ]
@@ -1369,7 +1369,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": ">",
-                "value": "0"
+                "value": "0",
 		"model": "HIL002"
                 }
             ]
@@ -1402,7 +1402,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": "==",
-                "value": "0"
+                "value": "0",
 		"model": "HIL002"
                 }
             ]
@@ -1431,7 +1431,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": ">",
-                "value": "0"
+                "value": "0",
 		"model": "HML007"
                 }
             ]
@@ -1454,7 +1454,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": "==",
-                "value": "0"
+                "value": "0",
 		"model": "HML007"
                 }
             ]
@@ -1499,7 +1499,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": ">",
-                "value": "0"
+                "value": "0",
 		"model": "HML001"
                 }
             ]
@@ -1532,7 +1532,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": "==",
-                "value": "0"
+                "value": "0",
 		"model": "HML001"
                 }
             ]
@@ -1577,7 +1577,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": ">",
-                "value": "0"
+                "value": "0",
 		"model": "HML002"
                 }
             ]
@@ -1610,7 +1610,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": "==",
-                "value": "0"
+                "value": "0",
 		"model": "HML002"
                 }
             ]
@@ -1655,7 +1655,7 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": ">",
-                "value": "0"
+                "value": "0",
 		"model": "HML003"
                 }
             ]
@@ -1688,42 +1688,11 @@
                 "service": "urn:upnp-org:serviceId:Dimming1",
                 "variable": "LoadLevelStatus",
                 "operator": "==",
-                "value": "0"
+                "value": "0",
 		"model": "HML003"
                 }
             ]
         }		       
-		       
-		       
-		       
---        {
---            "img": "dimmable_light_10.png",
---            "conditions": [
---                {
---                    "service": "urn:upnp-org:serviceId:Dimming1",
---                    "variable": "LoadLevelStatus",
---                    "operator": "<=",
---                    "value": 10
---                },
---                {
---                    "service": "urn:upnp-org:serviceId:Dimming1",
---                    "variable": "LoadLevelStatus",
---                    "operator": ">=",
---                   "value": 1
---                }
---            ]
---        },
---        {
---            "img": "dimmable_light_off.png",
---            "conditions": [
---                {
---                    "service": "urn:upnp-org:serviceId:Dimming1",
---                    "variable": "LoadLevelStatus",
---                    "operator": "==",
---                    "value": 0
---                }
---            ]
---        }
     ],
     "x": "2",
     "y": "4",
