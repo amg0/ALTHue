@@ -939,7 +939,765 @@
 					"model" : "LLC020"
 				}
 			]
-		} 
+		}, {
+			
+-----------------------			
+            "img": "icons_hue_beyond.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                    "service": "urn:upnp-org:serviceId:Dimming1",
+                    "variable": "LoadLevelStatus",
+                    "operator": ">",
+                    "value": "0"
+		    "model": "HBL001"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_beyond.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": "==",
+                "value": "0"
+		"model": "HBL001"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_beyond.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                    "service": "urn:upnp-org:serviceId:Dimming1",
+                    "variable": "LoadLevelStatus",
+                    "operator": ">",
+                    "value": "0"
+		    "model": "HBL002"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_beyond.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": "==",
+                "value": "0"
+		"model": "HBL002"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_beyond.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                    "service": "urn:upnp-org:serviceId:Dimming1",
+                    "variable": "LoadLevelStatus",
+                    "operator": ">",
+                    "value": "0"
+		    "model": "HBL003"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_beyond.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                    "service": "urn:upnp-org:serviceId:Dimming1",
+                    "variable": "LoadLevelStatus",
+                    "operator": "==",
+                    "value": "0"
+		    "model": "HBL003"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_entity.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                    "service": "urn:upnp-org:serviceId:Dimming1",
+                    "variable": "LoadLevelStatus",
+                    "operator": ">",
+                    "value": "0"
+		    "model": "HEL001"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_entity.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": "==",
+                "value": "0"
+		"model": "HEL001"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_entity.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": ">",
+                "value": "0"
+		"model": "HEL002"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_entity.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": "==",
+                "value": "0"
+		"model": "HEL002"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_impulse.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+		"variable": "LoadLevelStatus",
+                "operator": ">",
+                "value": "0"
+		"model": "HIL001"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_impulse.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": "==",
+                "value": "0"
+		"model": "HIL001"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_impulse.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": ">",
+                "value": "0"
+		"model": "HIL002"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_impulse.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": "==",
+                "value": "0"
+		"model": "HIL002"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_phoenix_downlight.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": ">",
+                "value": "0"
+		"model": "HML007"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_phoenix_downlight.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": "==",
+                "value": "0"
+		"model": "HML007"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_phoenix_centerpiece.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": ">",
+                "value": "0"
+		"model": "HML001"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_phoenix_centerpiece.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": "==",
+                "value": "0"
+		"model": "HML001"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_phoenix_centerpiece.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": ">",
+                "value": "0"
+		"model": "HML002"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_phoenix_centerpiece.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": "==",
+                "value": "0"
+		"model": "HML002"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_phoenix_centerpiece.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": {
+                        "service": "urn:micasaverde-com:serviceId:Color1",
+                        "variable": "CurrentColor"
+                    }
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": ">",
+                "value": "0"
+		"model": "HML003"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_phoenix_centerpiece.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill2",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": "==",
+                "value": "0"
+		"model": "HML003"
+                }
+            ]
+        }		       
+		       
+		       
+		       
 --        {
 --            "img": "dimmable_light_10.png",
 --            "conditions": [
