@@ -434,7 +434,7 @@
 					"variable" : "LoadLevelStatus",
 					"operator" : ">",
 					"value" : "0"
-					"value" : "LLC010"
+					"model" : "LLC010"
 				}
 			]
 		}, {
@@ -939,9 +939,7 @@
 					"model" : "LLC020"
 				}
 			]
-		}, {
-			
------------------------			
+		}, {		
             "img": "icons_hue_beyond.svg",
             "parameters": [
                 {
@@ -962,11 +960,11 @@
                 }
             ],
             "conditions": [{
-                    "service": "urn:upnp-org:serviceId:Dimming1",
-                    "variable": "LoadLevelStatus",
-                    "operator": ">",
-                    "value": "0"
-		    "model": "HBL001"
+                "service": "urn:upnp-org:serviceId:Dimming1",
+                "variable": "LoadLevelStatus",
+                "operator": ">",
+                "value": "0"
+	        "model": "HBL001"
                 }
             ]
         },
