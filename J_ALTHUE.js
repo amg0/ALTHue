@@ -12,27 +12,23 @@
 // ALTHUE  Plugin javascript Tabs
 //-------------------------------------------------------------
 
-if (typeof String.prototype.format == 'undefined') {
-	String.prototype.format = function()
-	{
-		var args = new Array(arguments.length);
-
-		for (var i = 0; i < args.length; ++i) {
-			// `i` is always valid index in the arguments object
-			// so we merely retrieve the value
-			args[i] = arguments[i];
-		}
-
-		return this.replace(/{(\d+)}/g, function(match, number) { 
-			return typeof args[number] != 'undefined' ? args[number] : match;
-		});
-	};
-};
-
 var myapi = window.api || null
 var ALTHUE = (function(api,$) {
 	var ALTHUE_Svs = 'urn:upnp-org:serviceId:althue1';
 	jQuery("body").prepend("<style>.ALTHue-cls { width:100%; }</style>")
+
+	function format(str)
+	{
+	   var content = str;
+	   for (var i=1; i < arguments.length; i++)
+	   {
+			var replacement = new RegExp('\\{' + (i-1) + '\\}', 'g');	// regex requires \ and assignment into string requires \\,
+			// if ($.type(arguments[i]) === "string")
+				// arguments[i] = arguments[i].replace(/\$/g,'$');
+			content = content.replace(replacement, arguments[i]);  
+	   }
+	   return content;
+	};
 
 	//-------------------------------------------------------------
 	// Device TAB : Dump Json
@@ -58,7 +54,7 @@ var ALTHUE = (function(api,$) {
 					id:idx,
 					type: light.type,
 					name: light.name,
-					model: "{0} {1}".format(light.manufacturername,light.modelid),
+					model: ALTHUE.format("{0} {1}",light.manufacturername,light.modelid),
 					swversion:light.swversion,
 					reachable:light.state.reachable,
 				})
@@ -70,7 +66,7 @@ var ALTHUE = (function(api,$) {
 					id:idx,
 					type: item.type,
 					name: item.name,
-					model: "{0} {1}".format(item.manufacturername,item.modelid),
+					model: ALTHUE.format("{0} {1}",item.manufacturername,item.modelid),
 					swversion:item.swversion,
 					lastupdated:item.state.lastupdated,
 				})
@@ -105,11 +101,11 @@ var ALTHUE = (function(api,$) {
 				});
 				jQuery.each( arr.sort(sortByName), function(idx,scene) {
 					model.push({
-						name:"<span title='{1}'>{0}</span>".format(scene.elem.name,scene.id),
+						name:ALTHUE.format("<span title='{1}'>{0}</span>",scene.elem.name,scene.id),
 						lights: formatLights( scene.elem.lights, data.lights ),
 						lastupdated:scene.elem.lastupdated,
 						id:scene.id,
-						run: '<button data-idx="{0}" class="btn btn-sm althue-runscene"> <i  class="fa fa-play" aria-hidden="true" title="Run"></i> Run</button>'.format(scene.id)
+						run: ALTHUE.format('<button data-idx="{0}" class="btn btn-sm althue-runscene"> <i  class="fa fa-play" aria-hidden="true" title="Run"></i> Run</button>',scene.id)
 					})
 				})
 				var html = ALTHUE.array2Table(model,'id',[],'My Hue Scenes','ALTHue-cls','ALTHue-scenestbl',false)
@@ -138,11 +134,11 @@ var ALTHUE = (function(api,$) {
 				var model = []
 				jQuery.each( data.whitelist || [], function(idx,app) {
 					model.push({
-						name: '<span title="{1}">{0}</span>'.format(app.name,idx),
+						name: ALTHUE.format('<span title="{1}">{0}</span>',app.name,idx),
 						// key: idx,
 						lastuse: app["last use date"],
 						create: app["create date"],
-						del: (idx==credentials) ? '' : '<button data-idx="{0}" class="btn btn-sm althue-delapp"> <i  class="fa fa-trash-o text-danger" aria-hidden="true" title="Delete"></i> Del</button>'.format(idx)
+						del: (idx==credentials) ? '' : ALTHUE.format('<button data-idx="{0}" class="btn btn-sm althue-delapp"> <i  class="fa fa-trash-o text-danger" aria-hidden="true" title="Delete"></i> Del</button>',idx)
 					})
 				})
 				var html = ALTHUE.array2Table(model,'name',[],'My Hue Apps','ALTHue-cls','ALTHue-appstbl',false)
@@ -198,20 +194,20 @@ var ALTHUE = (function(api,$) {
 					</div> \
 				</div>'
 			var prefix = get_device_state(deviceID,  ALTHUE.ALTHUE_Svs, "NamePrefix",1);
-			var htmlprefix = '\
+			var htmlprefix = ALTHUE.format('\
 				<label for="althue-NamePrefix">Prefix for names</label>		\
-				<div><input type="text" class="form-control" id="althue-NamePrefix" placeholder="Prefix or empty" value="{0}"></div>'.format(prefix)
+				<div><input type="text" class="form-control" id="althue-NamePrefix" placeholder="Prefix or empty" value="{0}"></div>',prefix)
 			var html = '<style>.bg-success { background-color: #28a745!important; } .bg-danger { background-color: #dc3545!important; }</style>'
 			html +='<form id="althue-settings-form"><table class="table">'
 			html += '<thead><tr><td></td><td></td></tr><thead>'
 			html += '<tbody>'
 			html += '<tr>'
-			html += '<td>{0}</td>'.format(htmlip)
-			html += '<td>{0}</td>'.format(htmlpolling)
+			html += ALTHUE.format('<td>{0}</td>',htmlip)
+			html += ALTHUE.format('<td>{0}</td>',htmlpolling)
 			html += '</tr>'
 			html += '<tr>'
-			html += '<td>{0}</td>'.format(htmlpairstatus)
-			html += '<td>{0}</td>'.format(htmlprefix)
+			html += ALTHUE.format('<td>{0}</td>',htmlpairstatus)
+			html += ALTHUE.format('<td>{0}</td>',htmlprefix)
 			html += '</tr>'
 			html += '</tbody>'
 			html += '</table>'
@@ -220,7 +216,7 @@ var ALTHUE = (function(api,$) {
 			jQuery.get("https://www.meethue.com/api/nupnp").done( function(data) {
 				var dropdown = jQuery("#althue-discovery-btn").parent().find("div.dropdown-menu")
 				jQuery.each(data, function(idx,item) {
-					jQuery(dropdown).append( '<a class="althue-ipselect dropdown-item" href="javascript:void(0);">{0} {1} {2}</a>'.format(item.internalipaddress,item.name||'', item.macaddress|| '') )
+					jQuery(dropdown).append( ALTHUE.format('<a class="althue-ipselect dropdown-item" href="javascript:void(0);">{0} {1} {2}</a>',item.internalipaddress,item.name||'', item.macaddress|| '') )
 				})
 				jQuery('.althue-ipselect').click(function(e) {
 					var ip = jQuery(this).text();
@@ -295,6 +291,7 @@ var ALTHUE = (function(api,$) {
 	
 	var myModule = {
 		ALTHUE_Svs 	: ALTHUE_Svs,
+		format		: format,
 		Dump 		: ALTHUE_Dump,
 		Settings 	: ALTHUE_Settings,
 		Information : ALTHUE_Information,
@@ -407,18 +404,18 @@ var ALTHUE = (function(api,$) {
 				});
 
 				var bFirst=true;
-				html+="<table id='{1}' class='table {2} table-sm table-hover table-striped {0}'>".format(cls || '', htmlid || 'altui-grid' , responsive );
+				html+=ALTHUE.format("<table id='{1}' class='table {2} table-sm table-hover table-striped {0}'>",cls || '', htmlid || 'altui-grid' , responsive );
 				if (caption)
-					html += "<caption>{0}</caption>".format(caption)
+					html += ALTHUE.format("<caption>{0}</caption>",caption)
 				$.each(arr, function(idx,obj) {
 					if (bFirst) {
 						html+="<thead>"
 						html+="<tr>"
 						$.each(display_order,function(_k,k) {
-							html+="<th style='text-transform: capitalize;' data-column-id='{0}' {1} {2}>".format(
+							html+=ALTHUE.format("<th style='text-transform: capitalize;' data-column-id='{0}' {1} {2}>",
 								k,
 								(k==idcolumn) ? "data-identifier='true'" : "",
-								"data-visible='{0}'".format( $.inArray(k,viscols)!=-1 )
+								ALTHUE.format("data-visible='{0}'", $.inArray(k,viscols)!=-1 )
 							)
 							html+=k;
 							html+="</th>"
@@ -440,7 +437,7 @@ var ALTHUE = (function(api,$) {
 				html+="</table>";
 			}
 			else
-				html +="<div>{0}</div>".format("No data to display")
+				html += ALTHUE.format("<div>{0}</div>","No data to display")
 
 			return html;		
 		}
