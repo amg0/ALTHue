@@ -607,7 +607,7 @@ end
 
 local function rgbToHex(red, green, blue)
 	local rgb = {red, green, blue}
-	local hexadecimal = '0X'
+	local hexadecimal = '#'
 	for key, value in pairs(rgb) do
 		local hex = ''
 		while(value > 0)do
