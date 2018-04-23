@@ -2471,5 +2471,6 @@
 			}]
 		}
 	],
-	"device_type": "urn:schemas-upnp-org:device:DimmableRGBLight:1"
+	"device_type": "urn:schemas-upnp-org:device:DimmableRGBLight:1",
+	"DeviceType": "urn:schemas-upnp-org:device:DimmableRGBLight:1"
 }
