@@ -19,18 +19,18 @@ local NAME_PREFIX	= "Hue "	-- trailing space needed
 local hostname		= ""
 local MapUID2Index={}
 local LightTypes = {
-	-- ["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableAltHue1.xml" }, -- UI5 requires this
-	["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBAltHue1.xml" }, 
-	["Color light"] = 				{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBAltHue1.xml" }, 
-	["Color temperature light"] = 	{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableAltHue1.xml" },
-	["Dimmable light"] = 			{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableAltHue1.xml" },
+	-- ["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableALTHue1.xml" }, -- UI5 requires this
+	["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBALTHue1.xml" }, 
+	["Color light"] = 				{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBALTHue1.xml" }, 
+	["Color temperature light"] = 	{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableALTHue1.xml" },
+	["Dimmable light"] = 			{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableALTHue1.xml" },
 
 	-- proposal from cybrmage for other devices
 	["On/Off light"] =              {  dtype="urn:schemas-upnp-org:device:BinaryLight:1" , dfile="D_BinaryLight1.xml" },
-	["Color dimmable light"] =		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBAltHue1.xml" },
+	["Color dimmable light"] =		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBALTHue1.xml" },
 
 	-- default
-	["Default"] = 					{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableAltHue1.xml" }
+	["Default"] = 					{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableALTHue1.xml" }
 }
 local SensorTypes = {
 	["ZLLTemperature"] = 	{  dtype="urn:schemas-micasaverde-com:device:TemperatureSensor:1" , dfile="D_TemperatureSensor1.xml" , vartable={"urn:upnp-org:serviceId:TemperatureSensor1,CurrentTemperature=0"} },
