@@ -25,8 +25,8 @@
         </stateVariable>	    
         <stateVariable sendEvents="yes">
             <name>LampHexValue</name>
-            <dataType>hex</dataType>
-            <defaultValue>0</defaultValue>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
             <shortCode>LampHexValue</shortCode>
         </stateVariable>
         <stateVariable sendEvents="no">
