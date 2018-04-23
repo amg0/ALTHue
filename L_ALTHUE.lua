@@ -841,6 +841,7 @@ function refreshHueData(lul_device,norefresh)
 	if (data~=nil) and (tablelength(data)>0) then
 		for k,v in pairs(data) do
 			local idx = tonumber(k)
+			local hexcolor = ""
 			local childId,child = findChild( lul_device, v.uniqueid )
 			if (childId~=nil) then
 				local status = (v.state.on == true) and "1" or "0"
@@ -866,6 +867,8 @@ function refreshHueData(lul_device,norefresh)
 						warning(string.format("Unknown colormode:%s for Hue:%s, uniqueid:%s",v.state.colormode,idx,v.uniqueid))
 					end
 					setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=%s,1=%s,2=%s,3=%s,4=%s",w,d,r,g,b), childId )
+					hexcolor = rgbToHex(r,g,b)
+					setVariableIfChanged("urn:upnp-org:serviceId:althue1", "LampHexValue", hexcolor, childId )
 				end
 			else
 				warning(string.format("could not find childId for Hue:%s, uniqueid:%s",idx,v.uniqueid))
@@ -1004,6 +1007,7 @@ local function InitDevices(lul_device,data)
 				setAttrIfChanged("name", NamePrefix..v.name, childId)
 				setAttrIfChanged("manufacturer", v.manufacturername, childId)
 				setAttrIfChanged("model", v.modelid, childId)
+				luup.variable_set(ALTHUE_SERVICE, "BulbModelID", v.modelid, childId)
 			-- unsuportedf devices wont be found, they have been filtered out at creationg time
 			-- else
 				-- warning(string.format("Could not find Hue device %s",v.uniqueid))
@@ -1045,6 +1049,7 @@ local function startEngine(lul_device)
 	else
 		setAttrIfChanged("manufacturer", data.name, lul_device)
 		setAttrIfChanged("model", data.modelid, lul_device)
+		luup.variable_set(ALTHUE_SERVICE, "BulbModelID", data.modelid, lul_device)
 		setAttrIfChanged("mac", data.mac, lul_device)
 		setAttrIfChanged("name", data.name, lul_device)
 	end
