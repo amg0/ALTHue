@@ -17,6 +17,7 @@ Why another one in addition to Vera's one
 Installation instructions:
 https://github.com/amg0/ALTHue/blob/master/Doc/ALTHue%20Philips%20Hue%20plugin.pdf
 
-.svg files from Icons folder must be uploaded on :
-UI7 => /www/cmh/skins/default/img/devices/device_states
-UI5 => /www/cmh/skins/default/icons
+Note:
+.svg files from Icons folder must be uploaded on:
+- UI7 => /www/cmh/skins/default/img/devices/device_states
+- UI5 => /www/cmh/skins/default/icons
