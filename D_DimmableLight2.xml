@@ -33,6 +33,11 @@
         <serviceId>urn:micasaverde-com:serviceId:Color1</serviceId>
         <SCPDURL>S_Color1.xml</SCPDURL>
       </service>
+      <service>
+        <serviceType>urn:schemas:upnp-org:serviceId:althue:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:althue1</serviceId>
+        <SCPDURL>S_ALTHUE.xml</SCPDURL>
+      </service>
     </serviceList>
   </device>
 </root>
