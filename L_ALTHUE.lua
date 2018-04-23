@@ -605,8 +605,8 @@ local function rgb_to_cie(red, green, blue)
 	return x1, y1
 end
 
-
-local function application:rgbToHex(rgb)
+local function rgbToHex(red, green, blue)
+	local rgb = {red, green, blue}
 	local hexadecimal = '0X'
 	for key, value in pairs(rgb) do
 		local hex = ''
@@ -615,13 +615,11 @@ local function application:rgbToHex(rgb)
 			value = math.floor(value / 16)
 			hex = string.sub('0123456789ABCDEF', index, index) .. hex			
 		end
-
 		if(string.len(hex) == 0)then
 			hex = '00'
 		elseif(string.len(hex) == 1)then
 			hex = '0' .. hex
 		end
-
 		hexadecimal = hexadecimal .. hex
 	end
 	return hexadecimal
