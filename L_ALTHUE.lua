@@ -20,7 +20,7 @@ local hostname		= ""
 local MapUID2Index={}
 local LightTypes = {
 	-- ["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableAltHue1.xml" }, -- UI5 requires this
-	["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableAltHue1.xml" }, 
+	["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBAltHue1.xml" }, 
 	["Color light"] = 				{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBAltHue1.xml" }, 
 	["Color temperature light"] = 	{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableAltHue1.xml" },
 	["Dimmable light"] = 			{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableAltHue1.xml" },
