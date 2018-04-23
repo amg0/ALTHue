@@ -20,17 +20,17 @@ local hostname		= ""
 local MapUID2Index={}
 local LightTypes = {
 	-- ["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableLight1.xml" }, -- UI5 requires this
-	["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight1.xml" }, 
-	["Color light"] = 				{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight1.xml" }, 
-	["Color temperature light"] = 	{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
-	["Dimmable light"] = 			{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" },
+	["Extended color light"] = 		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight3.xml" }, 
+	["Color light"] = 				{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight3.xml" }, 
+	["Color temperature light"] = 	{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight2.xml" },
+	["Dimmable light"] = 			{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight2.xml" },
 
 	-- proposal from cybrmage for other devices
 	["On/Off light"] =              {  dtype="urn:schemas-upnp-org:device:BinaryLight:1" , dfile="D_BinaryLight1.xml" },
-	["Color dimmable light"] =		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight1.xml" },
+	["Color dimmable light"] =		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBLight3.xml" },
 
 	-- default
-	["Default"] = 					{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight1.xml" }
+	["Default"] = 					{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableLight2.xml" }
 }
 local SensorTypes = {
 	["ZLLTemperature"] = 	{  dtype="urn:schemas-micasaverde-com:device:TemperatureSensor:1" , dfile="D_TemperatureSensor1.xml" , vartable={"urn:upnp-org:serviceId:TemperatureSensor1,CurrentTemperature=0"} },
@@ -605,6 +605,26 @@ local function rgb_to_cie(red, green, blue)
 	return x1, y1
 end
 
+local function rgbToHex(red, green, blue)
+	local rgb = {red, green, blue}
+	local hexadecimal = '#'
+	for key, value in pairs(rgb) do
+		local hex = ''
+		while(value > 0)do
+			local index = math.fmod(value, 16) + 1
+			value = math.floor(value / 16)
+			hex = string.sub('0123456789ABCDEF', index, index) .. hex			
+		end
+		if(string.len(hex) == 0)then
+			hex = '00'
+		elseif(string.len(hex) == 1)then
+			hex = '0' .. hex
+		end
+		hexadecimal = hexadecimal .. hex
+	end
+	return hexadecimal
+end
+
 ------------------------------------------------
 -- UPNP Actions Sequence
 ------------------------------------------------
@@ -821,6 +841,7 @@ function refreshHueData(lul_device,norefresh)
 	if (data~=nil) and (tablelength(data)>0) then
 		for k,v in pairs(data) do
 			local idx = tonumber(k)
+			local hexcolor = ""
 			local childId,child = findChild( lul_device, v.uniqueid )
 			if (childId~=nil) then
 				local status = (v.state.on == true) and "1" or "0"
@@ -846,6 +867,8 @@ function refreshHueData(lul_device,norefresh)
 						warning(string.format("Unknown colormode:%s for Hue:%s, uniqueid:%s",v.state.colormode,idx,v.uniqueid))
 					end
 					setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=%s,1=%s,2=%s,3=%s,4=%s",w,d,r,g,b), childId )
+					hexcolor = rgbToHex(r,g,b)
+					setVariableIfChanged("urn:upnp-org:serviceId:althue1", "LampHexValue", hexcolor, childId )
 				end
 			else
 				warning(string.format("could not find childId for Hue:%s, uniqueid:%s",idx,v.uniqueid))
@@ -984,6 +1007,7 @@ local function InitDevices(lul_device,data)
 				setAttrIfChanged("name", NamePrefix..v.name, childId)
 				setAttrIfChanged("manufacturer", v.manufacturername, childId)
 				setAttrIfChanged("model", v.modelid, childId)
+				luup.variable_set(ALTHUE_SERVICE, "BulbModelID", v.modelid, childId)
 			-- unsuportedf devices wont be found, they have been filtered out at creationg time
 			-- else
 				-- warning(string.format("Could not find Hue device %s",v.uniqueid))
@@ -1025,6 +1049,7 @@ local function startEngine(lul_device)
 	else
 		setAttrIfChanged("manufacturer", data.name, lul_device)
 		setAttrIfChanged("model", data.modelid, lul_device)
+		luup.variable_set(ALTHUE_SERVICE, "BulbModelID", data.modelid, lul_device)
 		setAttrIfChanged("mac", data.mac, lul_device)
 		setAttrIfChanged("name", data.name, lul_device)
 	end
