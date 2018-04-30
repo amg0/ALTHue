@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.0"
+local version		= "v1.1"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -927,9 +927,9 @@ function refreshHueData(lul_device,norefresh)
 		debug(string.format("programming next refreshHueData(%s) in %s sec",lul_device,period))
 		luup.call_delay("refreshHueData",period,tostring(lul_device))
 	end
-	if (success==true) then
-		luup.variable_set(ALTHUE_SERVICE, "LastValidComm", os.time(), lul_device)
-	end
+	-- if (success==true) then
+		-- luup.variable_set(ALTHUE_SERVICE, "LastValidComm", os.time(), lul_device)
+	-- end
 	debug(string.format("refreshHueData returns  success is : %s",tostring(success)))
 	return success
 end
@@ -1069,7 +1069,8 @@ function startupDeferred(lul_device)
 	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
 	local iconCode = getSetVariable(ALTHUE_SERVICE,"IconCode", lul_device, "0")
 	local lastvalid = getSetVariable(ALTHUE_SERVICE,"LastValidComm", lul_device, "")
-
+	setVariableIfChanged(ALTHUE_SERVICE, "LastValidComm", "", lul_device)
+	
 	-- sanitize
 	if (tonumber(period)==0) then
 		setVariableIfChanged(ALTHUE_SERVICE, "RefreshPeriod", DEFAULT_REFRESH, lul_device)
