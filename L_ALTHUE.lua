@@ -279,7 +279,7 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 	local credentials = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
 	local ipaddr = luup.attr_get ('ip', lul_device )
 	local newUrl = string.format("http://%s/api/%s/%s",ipaddr,credentials,cmd)
-	debug(string.format("Calling Hue with %s %s , body:%s",verb,newUrl,body))
+	-- debug(string.format("Calling Hue with %s %s , body:%s",verb,newUrl,body))
 	local request, code = http.request({
 		method=verb,
 		url = newUrl,
@@ -312,9 +312,9 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 
 	-- everything looks good
 	local data = table.concat(result)
-	debug(string.format("request:%s",request))
-	debug(string.format("code:%s",code))
-	debug(string.format("data:%s",data or ""))
+	-- debug(string.format("request:%s",request))
+	-- debug(string.format("code:%s",code))
+	-- debug(string.format("data:%s",data or ""))
 	return json.decode(data) ,""
 end
 
