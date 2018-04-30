@@ -927,9 +927,9 @@ function refreshHueData(lul_device,norefresh)
 		debug(string.format("programming next refreshHueData(%s) in %s sec",lul_device,period))
 		luup.call_delay("refreshHueData",period,tostring(lul_device))
 	end
-	-- if (success==true) then
-		-- luup.variable_set(ALTHUE_SERVICE, "LastValidComm", os.time(), lul_device)
-	-- end
+	if (success~=true) then
+		luup.variable_set(ALTHUE_SERVICE, "LastFailedComm", os.time(), lul_device)
+	end
 	debug(string.format("refreshHueData returns  success is : %s",tostring(success)))
 	return success
 end
@@ -1068,9 +1068,8 @@ function startupDeferred(lul_device)
 	local credentials	 = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
 	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
 	local iconCode = getSetVariable(ALTHUE_SERVICE,"IconCode", lul_device, "0")
-	local lastvalid = getSetVariable(ALTHUE_SERVICE,"LastValidComm", lul_device, "")
-	setVariableIfChanged(ALTHUE_SERVICE, "LastValidComm", "", lul_device)
-	
+	local lastvalid = getSetVariable(ALTHUE_SERVICE,"LastFailedComm", lul_device, "")
+
 	-- sanitize
 	if (tonumber(period)==0) then
 		setVariableIfChanged(ALTHUE_SERVICE, "RefreshPeriod", DEFAULT_REFRESH, lul_device)
