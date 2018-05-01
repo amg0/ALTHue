@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.1"
+local version		= "v1.1b"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -1069,6 +1069,7 @@ function startupDeferred(lul_device)
 	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
 	local iconCode = getSetVariable(ALTHUE_SERVICE,"IconCode", lul_device, "0")
 	local lastvalid = getSetVariable(ALTHUE_SERVICE,"LastFailedComm", lul_device, "")
+	setAttrIfChanged("category_num", 26, lul_device)	--Philips Controller
 
 	-- sanitize
 	if (tonumber(period)==0) then
