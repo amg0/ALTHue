@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.2"
+local version		= "v1.3"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -650,14 +650,17 @@ function UserSetLoadLevelTarget(lul_device,newValue)
 	local status = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
 	if (status ~= newValue) then
 		newValue = tonumber(newValue)
-		local bri = math.floor(1+253*newValue/100)
+		local bri = math.floor(255*newValue/100)
 		local val = (newValue ~= 0)
-		luup.variable_set("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", newValue, lul_device)
-		luup.variable_set("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", newValue, lul_device)
-		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Target", val and "1" or "0", lul_device)
-		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Status", val and "1" or "0", lul_device)
-
-		HueLampSetState(lul_device,string.format('{"on": %s, "bri": %d}',tostring(val),bri))
+		if (bri==0)  then
+			HueLampSetState(lul_device,'{"on": false}')
+		else
+			luup.variable_set("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", newValue, lul_device)
+			luup.variable_set("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", newValue, lul_device)
+			luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Target", val and "1" or "0", lul_device)
+			luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Status", val and "1" or "0", lul_device)
+			HueLampSetState(lul_device,string.format('{"on": %s, "bri": %d}',tostring(val),bri))
+		end
 	end
 end
 
@@ -697,7 +700,8 @@ function UserSetColor(lul_device,newColorTarget)
 
 	local mired = math.floor(1000000/kelvin)
 	local newValue = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
-	local bri = math.floor(1+253*tonumber(newValue)/100)
+	local bri = math.floor(255*newValue/100)
+	
 	debug(string.format("UserSetColor target: %s => bri:%s ct:%s",newColorTarget, bri,mired))
 	local body = string.format('{"on":true, "bri": %d, "ct":%s}', bri, mired )
 	HueLampSetState(lul_device,body)
@@ -709,7 +713,7 @@ function UserSetColorRGB(lul_device,newColorRGBTarget)
 	local x,y = rgb_to_cie(parts[1], parts[2], parts[3])
 	debug(string.format("RGB: %s => x:%s y:%s",newColorRGBTarget, tostring(x), tostring(y)))
 	local newValue = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
-	local bri = math.floor(1+253*tonumber(newValue)/100)
+	local bri = math.floor(255*newValue/100)
 	local body = string.format('{"on": true, "bri": %d, "xy":[%f,%f]}',bri,x,y)
 	HueLampSetState(lul_device,body)
 end
@@ -845,7 +849,7 @@ function refreshHueData(lul_device,norefresh)
 			local childId,child = findChild( lul_device, v.uniqueid )
 			if (childId~=nil) then
 				local status = (v.state.on == true) and "1" or "0"
-				local bri = math.floor(100 * ((v.state.bri or 1)-1) / 253)
+				local bri = math.ceil( 100*(v.state.bri or 0)/255 )
 				if (v.state.on == false) then
 					bri=0
 				end
