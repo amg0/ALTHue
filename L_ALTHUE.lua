@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.3"
+local version		= "v1.31"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -903,7 +903,12 @@ function refreshHueData(lul_device,norefresh)
 						setVariableIfChanged("urn:micasaverde-com:serviceId:HaDevice1", "BatteryDate", convertedTimestamp or "", childId )
 					end
 					if (v.type == "ZLLTemperature") then
-						setVariableIfChanged("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", (v.state.temperature or 0)/100, childId )
+						local temp = (v.state.temperature or 0)/100
+						local tempformat = getSetVariable(ALTHUE_SERVICE,"TempFormat", lul_device, "C")
+						if (tempformat=="F") then
+							temp = (temp * 1.8) + 32
+						end
+						setVariableIfChanged("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", temp, childId )
 					elseif (v.type == "ZLLPresence") then
 						local tripped = (v.state.presence == true) and "1" or "0"
 						local armed = getSetVariable("urn:micasaverde-com:serviceId:SecuritySensor1", "Armed", childId, 0)
@@ -1073,6 +1078,7 @@ function startupDeferred(lul_device)
 	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
 	local iconCode = getSetVariable(ALTHUE_SERVICE,"IconCode", lul_device, "0")
 	local lastvalid = getSetVariable(ALTHUE_SERVICE,"LastFailedComm", lul_device, "")
+	local tempformat = getSetVariable(ALTHUE_SERVICE,"TempFormat", lul_device, "C")
 	setAttrIfChanged("category_num", 26, lul_device)	--Philips Controller
 
 	-- sanitize
