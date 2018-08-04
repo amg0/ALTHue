@@ -718,6 +718,13 @@ function UserSetColorRGB(lul_device,newColorRGBTarget)
 	HueLampSetState(lul_device,body)
 end
 
+function UserSetEffect(lul_device,lul_child,newEffect)
+	newEffect = newEffect or "none"
+	debug(string.format("UserSetEffect(%s,%s,%s)",lul_device,lul_child,newEffect))
+	local body = string.format('{"effect":"%s"}', newEffect )
+	HueLampSetState(lul_child,body)
+end
+
 function UserSetArmed(lul_device,newArmedValue)
 	debug(string.format("UserSetArmed(%s,%s)",lul_device,newArmedValue))
 	lul_device = tonumber(lul_device)

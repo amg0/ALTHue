@@ -35,6 +35,18 @@
             <defaultValue></defaultValue>
             <shortCode>huesceneid</shortCode>
         </stateVariable>
+        <stateVariable sendEvents="no">
+            <name>ChildID</name>
+            <dataType>ui4</dataType>
+            <defaultValue></defaultValue>
+            <shortCode>lul_child</shortCode>
+        </stateVariable>
+        <stateVariable sendEvents="no">
+            <name>NewEffect</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+            <shortCode>neweffect</shortCode>
+        </stateVariable>
 	</serviceStateTable>
     <actionList>
         <action>
@@ -69,6 +81,21 @@
                     <name>hueSceneID</name>
                     <direction>in</direction>
                     <relatedStateVariable>HueSceneID</relatedStateVariable>
+                </argument>
+            </argumentList>
+		</action>
+        <action>
+            <name>SetEffect</name>
+            <argumentList>
+                <argument>
+                    <name>childID</name>
+                    <direction>in</direction>
+                    <relatedStateVariable>ChildID</relatedStateVariable>
+                </argument>
+                <argument>
+                    <name>newEffect</name>
+                    <direction>in</direction>
+                    <relatedStateVariable>NewEffect</relatedStateVariable>
                 </argument>
             </argumentList>
 		</action>

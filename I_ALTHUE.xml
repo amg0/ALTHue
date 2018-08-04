@@ -47,6 +47,14 @@
 		  </run>
 		</action>
 
+        <action>
+			<serviceId>urn:upnp-org:serviceId:althue1</serviceId>
+            <name>SetEffect</name>
+			<run>
+				UserSetEffect(lul_device,lul_settings.childID,lul_settings.newEffect)
+			</run>            
+        </action>
+
 		<action>
 		  <serviceId>urn:upnp-org:serviceId:TemperatureSensor1</serviceId>
 		  <name>GetCurrentTemperature</name>
