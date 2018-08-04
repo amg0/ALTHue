@@ -46,35 +46,55 @@ var ALTHUE = (function(api,$) {
 	// Device TAB : Info
 	//-------------------------------------------------------------	
 	function ALTHUE_Information(deviceID) {
-		var url = ALTHUE.buildHandlerUrl(deviceID,"config",{url:''})
-		$.get(url).done(function(data) {
-			var model = []
-			jQuery.each( data.lights || [], function(idx,light) {
-				model.push({
-					id:idx,
-					type: light.type,
-					name: light.name,
-					model: ALTHUE.format("{0} {1}",light.manufacturername,light.modelid),
-					swversion:light.swversion,
-					reachable:light.state.reachable,
+		function setHtml(deviceID) {
+			var url = ALTHUE.buildHandlerUrl(deviceID,"config",{url:''})
+			$.get(url).done(function(data) {
+				var model = []
+				var tblEffects = [ 'none', 'colorloop' ]
+				jQuery.each( data.lights || [], function(idx,light) {
+					var btnEffect = "";
+					if (light.state.effect) {
+						var idxeffect = tblEffects.indexOf(light.state.effect)
+						if (idxeffect!=-1) {
+							btnEffect = ALTHUE.format('<button data-uid="{0}" data-neweffect="{2}" class="btn btn-xs althue-chgeffect"> <i  class="fa fa-play" aria-hidden="true" title="{2}"></i> {2}</button>',light.uniqueid,light.state.effect,tblEffects[ 1-idxeffect ])
+						}
+					}
+					model.push({
+						id:idx,
+						type: light.type,
+						name: light.name,
+						model: ALTHUE.format("{0} {1}",light.manufacturername,light.modelid),
+						swversion:light.swversion,
+						reachable:light.state.reachable,
+						effect: btnEffect
+					})
+				})
+				var html = ALTHUE.array2Table(model,'id',[],'My Hue Lights','ALTHue-cls','ALTHue-lightstbl',false)
+				model = []
+				jQuery.each( data.sensors || [], function(idx,item) {
+					model.push({
+						id:idx,
+						type: item.type,
+						name: item.name,
+						model: ALTHUE.format("{0} {1}",item.manufacturername,item.modelid),
+						swversion:item.swversion,
+						lastupdated:item.state.lastupdated,
+					})
+				})
+				html += ALTHUE.array2Table(model,'id',[],'My Hue Sensors','ALTHue-cls','ALTHue-sensorstbl',false)
+				set_panel_html(html);
+				jQuery(".althue-chgeffect").click(function(e){
+					var uid = jQuery(this).data('uid');
+					var url = ALTHUE.buildHandlerUrl(deviceID,"setColorEffect",{hueuid:uid, effect:$(this).text().trim()})
+					$.get(url).done(function(data) {
+						setHtml(deviceID);
+					}) .fail( function() {
+						alert("action did not complete successfully");
+					})
 				})
 			})
-			var html = ALTHUE.array2Table(model,'id',[],'My Hue Lights','ALTHue-cls','ALTHue-lightstbl',false)
-			model = []
-			jQuery.each( data.sensors || [], function(idx,item) {
-				model.push({
-					id:idx,
-					type: item.type,
-					name: item.name,
-					model: ALTHUE.format("{0} {1}",item.manufacturername,item.modelid),
-					swversion:item.swversion,
-					lastupdated:item.state.lastupdated,
-				})
-			})
-			html += ALTHUE.array2Table(model,'id',[],'My Hue Sensors','ALTHue-cls','ALTHue-sensorstbl',false)
-
-			set_panel_html(html);
-		})
+		}
+		setHtml(deviceID);
 	};
 	
 	//-------------------------------------------------------------

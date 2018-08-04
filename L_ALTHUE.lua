@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.31"
+local version		= "v1.40"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -41,6 +41,7 @@ local SensorTypes = {
 local json = require("dkjson")
 local mime = require('mime')
 local socket = require("socket")
+local modurl = require ("socket.url")
 local http = require("socket.http")
 local ltn12 = require("ltn12")
 
@@ -413,6 +414,22 @@ function myALTHUE_Handler(lul_request, lul_parameters, lul_outputformat)
 		local data,msg = deleteUserID(deviceID,oldcredentials)
 		return json.encode(data or {}), "application/json"
 	  end, 
+	  
+	  ["setColorEffect"]=
+	  function(params)
+		local result = "err"
+		local effect = lul_parameters["effect"]
+		local hueuid = modurl.unescape(lul_parameters["hueuid"])
+		if (hueuid ~= nil) and (effect ~= nil) then
+			local childId,child = findChild( deviceID, hueuid )
+			if (childId ~= nil) then
+				UserSetEffect(deviceID,childId,effect)
+				result = "ok"
+			end
+		end
+		return json.encode(result or {}), "application/json"
+	  end, 
+	  
 	  
 	  -- ["runScene"]=
 	  -- function(params)
