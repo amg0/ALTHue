@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.40"
+local version		= "v1.41"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -30,6 +30,9 @@ local LightTypes = {
 	["On/Off light"] =              {  dtype="urn:schemas-upnp-org:device:BinaryLight:1" , dfile="D_BinaryLight1.xml" },
 	["Color dimmable light"] =		{  dtype="urn:schemas-upnp-org:device:DimmableRGBLight:1" , dfile="D_DimmableRGBALTHue1.xml" },
 
+	-- OSRAM On Off Plug
+	["On/Off plug-in unit"] =		{  dtype="urn:schemas-upnp-org:device:BinaryLight:1" , dfile="D_BinaryLight1.xml" },
+	
 	-- default
 	["Default"] = 					{  dtype="urn:schemas-upnp-org:device:DimmableLight:1" , dfile="D_DimmableALTHue1.xml" }
 }
@@ -685,8 +688,8 @@ end
 function UserSetPowerTarget(lul_device,newTargetValue)
 	debug(string.format("UserSetPowerTarget(%s,%s)",lul_device,newTargetValue))
 	newTargetValue = tonumber(newTargetValue)
-	-- special case for cybrmage ZHA Securifi device ( power plug )
-	if (luup.devices[lul_device].device_type == LightTypes["On/Off light"].dtype) then
+	-- special case for BinaryLight devices like OSRAM plug or cybrmage ZHA Securifi device ( power plug )
+	if (luup.devices[lul_device].device_type == "urn:schemas-upnp-org:device:BinaryLight:1") then
 		local v = (newTargetValue > 0) and "1" or "0"
 		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Target", v, lul_device)
 		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Status", v, lul_device)
