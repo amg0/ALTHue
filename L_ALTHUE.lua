@@ -16,6 +16,7 @@ local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
 local NAME_PREFIX	= "Hue "	-- trailing space needed
+local RAND_DELAY = 10
 local hostname		= ""
 local MapUID2Index={}
 local LightTypes = {
@@ -1200,7 +1201,7 @@ function initstatus(lul_device)
   log("initstatus("..lul_device..") starting version: "..version)
   checkVersion(lul_device)
   hostname = getIP()
-  local delay = 1	-- delaying first refresh by x seconds
+  local delay = math.random(RAND_DELAY)	-- delaying first refresh by x seconds
   debug("initstatus("..lul_device..") startup for Root device, delay:"..delay)
   luup.call_delay("startupDeferred", delay, tostring(lul_device))
 end
