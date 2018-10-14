@@ -11,13 +11,7 @@
             <defaultValue>0</defaultValue>
             <shortCode>debug</shortCode>
         </stateVariable>
-	<stateVariable sendEvents="no">
-            <name>BulbModelID</name>
-            <dataType>string</dataType>
-            <defaultValue></defaultValue>
-            <shortCode>BulbModelID</shortCode>
-        </stateVariable>
-	<stateVariable sendEvents="yes">
+		<stateVariable sendEvents="yes">
             <name>IconCode</name>
             <dataType>ui4</dataType>
             <defaultValue>0</defaultValue>

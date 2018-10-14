@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.41"
+local version		= "v1.42"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -1044,7 +1044,7 @@ local function InitDevices(lul_device,data)
 				setAttrIfChanged("name", NamePrefix..v.name, childId)
 				setAttrIfChanged("manufacturer", v.manufacturername, childId)
 				setAttrIfChanged("model", v.modelid, childId)
-				luup.variable_set(ALTHUE_SERVICE, "BulbModelID", v.modelid, childId)
+				-- luup.variable_set(ALTHUE_SERVICE, "BulbModelID", v.modelid, childId)
 			-- unsuportedf devices wont be found, they have been filtered out at creationg time
 			-- else
 				-- warning(string.format("Could not find Hue device %s",v.uniqueid))
@@ -1086,7 +1086,7 @@ local function startEngine(lul_device)
 	else
 		setAttrIfChanged("manufacturer", data.name, lul_device)
 		setAttrIfChanged("model", data.modelid, lul_device)
-		luup.variable_set(ALTHUE_SERVICE, "BulbModelID", data.modelid, lul_device)
+		-- luup.variable_set(ALTHUE_SERVICE, "BulbModelID", data.modelid, lul_device)
 		setAttrIfChanged("mac", data.mac, lul_device)
 		setAttrIfChanged("name", data.name, lul_device)
 	end
