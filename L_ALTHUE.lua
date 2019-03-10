@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.43"
+local version		= "v1.44"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -284,7 +284,7 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 	local credentials = getSetVariable(ALTHUE_SERVICE, "Credentials", lul_device, "")
 	local ipaddr = luup.attr_get ('ip', lul_device )
 	local newUrl = string.format("http://%s/api/%s/%s",ipaddr,credentials,cmd)
-	-- debug(string.format("Calling Hue with %s %s , body:%s",verb,newUrl,body))
+	debug(string.format("Calling Hue with %s %s , body:%s",verb,newUrl,body))
 	local request, code = http.request({
 		method=verb,
 		url = newUrl,
@@ -317,9 +317,9 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 
 	-- everything looks good
 	local data = table.concat(result)
-	-- debug(string.format("request:%s",request))
-	-- debug(string.format("code:%s",code))
-	-- debug(string.format("data:%s",data or ""))
+	debug(string.format("request:%s",request))
+	debug(string.format("code:%s",code))
+	debug(string.format("data:%s",data or ""))
 	return json.decode(data) ,""
 end
 
@@ -887,16 +887,16 @@ function refreshHueData(lul_device,norefresh)
 				setVariableIfChanged("urn:upnp-org:serviceId:Dimming1", "LoadLevelTarget", bri, childId )
 				if (v.state.colormode ~= nil) then
 					local w,d,r,g,b=0,0,0,0,0
-					if (v.state.colormode == "xy") then
+					if (v.state.colormode == "xy") and (v.state.xy~=nil) then
 						r,g,b = cie_to_rgb(v.state.xy[1], v.state.xy[2], nil) -- v.state.bri
 					elseif (v.state.colormode == "hs") then
 						r,g,b = hsb_to_rgb(v.state.hue, v.state.sat, v.state.bri)
-					elseif (v.state.colormode == "ct") then
+					elseif (v.state.colormode == "ct") and (v.state.ct~=nil) then
 						local kelvin = math.floor(((1000000/v.state.ct)/100)+0.5)*100
 						w = (kelvin < 5450) and (math.floor((kelvin-2000)/13.52) + 1) or 0
 						d = (kelvin > 5450) and (math.floor((kelvin-5500)/13.52) + 1) or 0
 					else
-						warning(string.format("Unknown colormode:%s for Hue:%s, uniqueid:%s",v.state.colormode,idx,v.uniqueid))
+						warning(string.format("Unknown colormode:%s for Hue:%s, uniqueid:%s , state:%s",v.state.colormode,idx,v.uniqueid, json.encode(v.state)))
 					end
 					setVariableIfChanged("urn:micasaverde-com:serviceId:Color1", "CurrentColor", string.format("0=%s,1=%s,2=%s,3=%s,4=%s",w,d,r,g,b), childId )
 					hexcolor = rgbToHex(r,g,b)

@@ -14,10 +14,13 @@ Why another one in addition to Vera's one
 - Code less ugly and messy
 - All devices appear strictly as standard vera devices, supporting same service/variable, same Upnp actions
 
-Installation instructions:
+### Versions
+- v 1.44 : fix strange Tadfridi lamp behavior reporting xy mode and only ct data
+ 
+### Installation instructions:
 https://github.com/amg0/ALTHue/blob/master/Doc/ALTHue%20Philips%20Hue%20plugin.pdf
 
-Note:
+### Note:
 .svg files from Icons folder must be uploaded on:
 - UI7 => /www/cmh/skins/default/img/devices/device_states
 - UI5 => /www/cmh/skins/default/icons
