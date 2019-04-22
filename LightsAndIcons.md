@@ -28,18 +28,21 @@ On/Off plug-in unit | D_BinaryLight1
 
 product name | model ID | Icon
 --- | --- | ---
-Hue bulb A19|LCT001, LCT007|tbd
+Hue bulb A19|LCT001, LCT007|icons_hue_a19.svg 
 Hue bulb A19|LCT010, LCT014, LCT015, LCT016|tbd
-Hue Spot BR30|LCT002|tbd
-Hue Spot GU10|LCT003|tbd
+Hue Spot BR30|LCT002|icons_hue_spot_br30.svg
+Hue Spot GU10|LCT003|icons_hue_spot_gu10.svg
 Hue BR30 Richer Colors|LCT011|tbd
 Hue BR30 White Ambience|LTW011|tbd
-Hue LightStrips|LST001|tbd
-Hue Living Colors Iris|LLC010|tbd
-Hue Living Colors Bloom|LLC011, LLC012|tbd
-Living Colors Gen3 Iris*|LLC006|tbd
-Living Colors Gen3 Bloom, Aura*|LLC005, LLC007, LLC014|tbd
-Disney Living Colors|LLC013|tbd
+Hue LightStrips|LST001|icons_hue_light_strips.svg
+? | LLC001 | icons_hue_iris_llc010_light.svg
+Hue Living Colors Iris|LLC010|icons_hue_iris_llc010_light.svg
+Hue Living Colors Bloom|LLC011, LLC012|icons_hue_bloom_light.svg
+Living Colors Gen3 Iris*|LLC006|icons_hue_iris_llc010_light.svg
+Living Colors Gen3 Bloom, Aura*| LLC007|icons_hue_iris_llc007_light.svg
+Living Colors Gen3 Bloom, Aura*|LLC005, LLC014|tbd
+Disney Living Colors|LLC013|icons_hue_disney_light.svg
+?|LWB001|icons_hue_a19.svg
 Hue White|LWB004, LWB006, LWB007|icons_hue_a19.svg
 Hue White lamp|LWB010, LWB014|tbd
 Color Light Module|LLM001|tbd
@@ -47,7 +50,7 @@ Color Temperature Module|LLM010, LLM011, LLM012|tbd
 Hue A19 White Ambiance|LTW001, LTW004, LTW010, LTW015|tbd
 Hue ambiance spot|LTW013, LTW014|tbd
 Hue Go|LLC020|tbd
-Hue LightStrips Plus|LST002|tbd
+Hue LightStrips Plus|LST002|icons_hue_light_strips.svg
 Hue color candle|LCT012|tbd
 Hue ambiance candle|LTW012|tbd
 Hue ambiance pendant|LTP001, LTP002, LTP003, LTP004, LTP005, LTD003|tbd
@@ -73,3 +76,4 @@ Hue Phoenix Pendant|HML003|tbd
 Hue Phoenix Wall|HML004|tbd
 Hue Phoenix Table|HML005|tbd
 Hue Phoenix Downlight|HML006|tbd
+GE? | ZLL Light |icons_hue_a19.svg
