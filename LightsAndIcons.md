@@ -1,6 +1,6 @@
 # Category
 
-corresponds to the "type" field of the json data in the plugin DATA settings page.
+first identify the "type" field of the json data in the plugin DATA settings page.
 
 1. On/off light (ZigBee Device ID: 0x0000), supports groups, scenes and on/off control
 2. Dimmable light (ZigBee Device ID: 0x0100), which supports groups, scenes, on/off and dimming.
@@ -13,6 +13,8 @@ OSRAM may have some different categories like
 
 # Category maps to .JSON file
 
+according to some type of lamp, a different json file is used
+
 type | xml & json file
 --- | ---
 On/off light | D_BinaryLight1
@@ -24,6 +26,8 @@ Color dimmable light | D_DimmableRGBALTHue1
 On/Off plug-in unit | D_BinaryLight1
 
 # Mapping product name <=> Icon
+
+mapping for the icon conditional selection is found in the .json file
 
 product name | model ID | Icon
 --- | --- | ---
