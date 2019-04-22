@@ -24,7 +24,8 @@ Color dimmable light | D_DimmableRGBALTHue1
 On/Off plug-in unit | D_BinaryLight1
 
 # Mapping product name <=> Icon
-Product Name|Model ID|Icon
+
+Product Name | Model ID | Icon
 xxx|xxx|xxx
 Hue bulb A19|LCT001, LCT007|
 Hue bulb A19|LCT010, LCT014, LCT015, LCT016|
