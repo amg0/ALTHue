@@ -25,8 +25,6 @@ On/Off plug-in unit | D_BinaryLight1
 
 # Mapping product name <=> Icon
 
-Product Name | Model ID | Icon
---- | --- | --- | ---
 
-
-
+product name | model ID 
+--- | ---
