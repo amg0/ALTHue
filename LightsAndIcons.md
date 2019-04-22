@@ -26,50 +26,50 @@ On/Off plug-in unit | D_BinaryLight1
 # Mapping product name <=> Icon
 
 
-product name | model ID 
---- | ---
-Hue bulb A19|LCT001, LCT007|
-Hue bulb A19|LCT010, LCT014, LCT015, LCT016|
-Hue Spot BR30|LCT002|
-Hue Spot GU10|LCT003|
-Hue BR30 Richer Colors|LCT011|
-Hue BR30 White Ambience|LTW011|
-Hue LightStrips|LST001|
-Hue Living Colors Iris|LLC010|
-Hue Living Colors Bloom|LLC011, LLC012|
-Living Colors Gen3 Iris*|LLC006|
-Living Colors Gen3 Bloom, Aura*|LLC005, LLC007, LLC014|
-Disney Living Colors|LLC013|
-Hue White|LWB004, LWB006, LWB007|
-Hue White lamp|LWB010, LWB014|
-Color Light Module|LLM001|
-Color Temperature Module|LLM010, LLM011, LLM012|
-Hue A19 White Ambiance|LTW001, LTW004, LTW010, LTW015|
-Hue ambiance spot|LTW013, LTW014|
-Hue Go|LLC020|
-Hue LightStrips Plus|LST002|
-Hue color candle|LCT012|
-Hue ambiance candle|LTW012|
-Hue ambiance pendant|LTP001, LTP002, LTP003, LTP004, LTP005, LTD003|
-Hue ambiance ceiling|LTF001, LTF002, LTC001, LTC002, LTC003, LTC004, LTC011, LTC012, LTD001, LTD002|
-Hue ambiance floor|LFF001|
-Hue ambiance table|LTT001|
-Hue ambiance downlight|LDT001|
-Hue white wall washer|LDF002|
-Hue white ceiling|LDF001|
-Hue white floor|LDD002|
-Hue white table|LDD001|
-Hue white 1-10V|MWM001|
-Hue Beyond Table|HBL001|
-Hue Beyond Pendant|HBL002|
-Hue Beyond Ceiling|HBL003|
-Hue Entity Table|HEL001|
-Hue Entity Pendant|HEL002|
-Hue Impulse Table|HIL001|
-Hue Impulse Pendant|HIL002|
-Hue Phoenix Centerpiece|HML001|
-Hue Phoenix Ceiling|HML002|
-Hue Phoenix Pendant|HML003|
-Hue Phoenix Wall|HML004|
-Hue Phoenix Table|HML005|
-Hue Phoenix Downlight|HML006|
+product name | model ID | Icon
+--- | --- | ---
+Hue bulb A19|LCT001, LCT007|tbd
+Hue bulb A19|LCT010, LCT014, LCT015, LCT016|tbd
+Hue Spot BR30|LCT002|tbd
+Hue Spot GU10|LCT003|tbd
+Hue BR30 Richer Colors|LCT011|tbd
+Hue BR30 White Ambience|LTW011|tbd
+Hue LightStrips|LST001|tbd
+Hue Living Colors Iris|LLC010|tbd
+Hue Living Colors Bloom|LLC011, LLC012|tbd
+Living Colors Gen3 Iris*|LLC006|tbd
+Living Colors Gen3 Bloom, Aura*|LLC005, LLC007, LLC014|tbd
+Disney Living Colors|LLC013|tbd
+Hue White|LWB004, LWB006, LWB007|tbd
+Hue White lamp|LWB010, LWB014|tbd
+Color Light Module|LLM001|tbd
+Color Temperature Module|LLM010, LLM011, LLM012|tbd
+Hue A19 White Ambiance|LTW001, LTW004, LTW010, LTW015|tbd
+Hue ambiance spot|LTW013, LTW014|tbd
+Hue Go|LLC020|tbd
+Hue LightStrips Plus|LST002|tbd
+Hue color candle|LCT012|tbd
+Hue ambiance candle|LTW012|tbd
+Hue ambiance pendant|LTP001, LTP002, LTP003, LTP004, LTP005, LTD003|tbd
+Hue ambiance ceiling|LTF001, LTF002, LTC001, LTC002, LTC003, LTC004, LTC011, LTC012, LTD001, LTD002|tbd
+Hue ambiance floor|LFF001|tbd
+Hue ambiance table|LTT001|tbd
+Hue ambiance downlight|LDT001|tbd
+Hue white wall washer|LDF002|tbd
+Hue white ceiling|LDF001|tbd
+Hue white floor|LDD002|tbd
+Hue white table|LDD001|tbd
+Hue white 1-10V|MWM001|tbd
+Hue Beyond Table|HBL001|tbd
+Hue Beyond Pendant|HBL002|tbd
+Hue Beyond Ceiling|HBL003|tbd
+Hue Entity Table|HEL001|tbd
+Hue Entity Pendant|HEL002|tbd
+Hue Impulse Table|HIL001|tbd
+Hue Impulse Pendant|HIL002|tbd
+Hue Phoenix Centerpiece|HML001|tbd
+Hue Phoenix Ceiling|HML002|tbd
+Hue Phoenix Pendant|HML003|tbd
+Hue Phoenix Wall|HML004|tbd
+Hue Phoenix Table|HML005|tbd
+Hue Phoenix Downlight|HML006|tbd
