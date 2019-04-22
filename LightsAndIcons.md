@@ -46,8 +46,7 @@ Living Colors Gen3 Bloom, Aura*| LLC007|icons_hue_iris_llc007_light.svg
 Living Colors Gen3 Bloom, Aura*|LLC005, LLC014|tbd
 Disney Living Colors|LLC013|icons_hue_disney_light.svg
 ?|LWB001|icons_hue_a19.svg
-Hue White|LWB004, LWB006, LWB007|icons_hue_a19.svg
-Hue White lamp|LWB010, LWB014|tbd
+Hue White|LWB004, LWB006, LWB007, LWB010, LWB014|icons_hue_a19.svg
 Color Light Module|LLM001|icons_hue_beyond.svg
 Color Temperature Module|LLM010, LLM011, LLM012|icons_hue_phoenix_downlight.svg
 Hue A19 White Ambiance|LTW001, LTW004, LTW010, LTW015|tbd
