@@ -100,6 +100,156 @@
 				"operator": "==",
 				"value": "0"
 			}]
+		},  {
+			"img": "icons_hue_a19.svg",
+			"parameters": [{
+				"id": "fill1",
+				"argument": "fill",
+				"value": {
+					"service": "urn:upnp-org:serviceId:althue1",
+					"variable": "LampHexValue"
+				}
+			}, {
+				"id": "fill1",
+				"argument": "opacity",
+				"value": {
+					"service": "urn:upnp-org:serviceId:Dimming1",
+					"variable": "LoadLevelStatus"
+				}
+			}],
+			"conditions": [{
+				"service": "urn:upnp-org:serviceId:althue1",
+				"variable": "BulbModelID",
+				"operator": "==",
+				"value": "LCT010"
+			}, {
+				"service": "urn:upnp-org:serviceId:Dimming1",
+				"variable": "LoadLevelStatus",
+				"operator": ">",
+				"value": "0"
+			}]
+		}, {
+			"img": "icons_hue_a19.svg",
+			"parameters": [{
+				"id": "fill1",
+				"argument": "fill",
+				"value": "#8F8F8F"
+			}, {
+				"id": "fill1",
+				"argument": "opacity",
+				"value": "100"
+			}],
+			"conditions": [{
+				"service": "urn:upnp-org:serviceId:althue1",
+				"variable": "BulbModelID",
+				"operator": "==",
+				"value": "LCT010"
+			}, {
+				"service": "urn:upnp-org:serviceId:Dimming1",
+				"variable": "LoadLevelStatus",
+				"operator": "==",
+				"value": "0"
+			}]
+		}, {
+			"img": "icons_hue_a19.svg",
+			"parameters": [{
+				"id": "fill1",
+				"argument": "fill",
+				"value": {
+					"service": "urn:upnp-org:serviceId:althue1",
+					"variable": "LampHexValue"
+				}
+			}, {
+				"id": "fill1",
+				"argument": "opacity",
+				"value": {
+					"service": "urn:upnp-org:serviceId:Dimming1",
+					"variable": "LoadLevelStatus"
+				}
+			}],
+			"conditions": [{
+				"service": "urn:upnp-org:serviceId:althue1",
+				"variable": "BulbModelID",
+				"operator": "==",
+				"value": "LCT014"
+			}, {
+				"service": "urn:upnp-org:serviceId:Dimming1",
+				"variable": "LoadLevelStatus",
+				"operator": ">",
+				"value": "0"
+			}]
+		}, {
+			"img": "icons_hue_a19.svg",
+			"parameters": [{
+				"id": "fill1",
+				"argument": "fill",
+				"value": "#8F8F8F"
+			}, {
+				"id": "fill1",
+				"argument": "opacity",
+				"value": "100"
+			}],
+			"conditions": [{
+				"service": "urn:upnp-org:serviceId:althue1",
+				"variable": "BulbModelID",
+				"operator": "==",
+				"value": "LCT014"
+			}, {
+				"service": "urn:upnp-org:serviceId:Dimming1",
+				"variable": "LoadLevelStatus",
+				"operator": "==",
+				"value": "0"
+			}]
+		},{
+			"img": "icons_hue_a19.svg",
+			"parameters": [{
+				"id": "fill1",
+				"argument": "fill",
+				"value": {
+					"service": "urn:upnp-org:serviceId:althue1",
+					"variable": "LampHexValue"
+				}
+			}, {
+				"id": "fill1",
+				"argument": "opacity",
+				"value": {
+					"service": "urn:upnp-org:serviceId:Dimming1",
+					"variable": "LoadLevelStatus"
+				}
+			}],
+			"conditions": [{
+				"service": "urn:upnp-org:serviceId:althue1",
+				"variable": "BulbModelID",
+				"operator": "==",
+				"value": "LCT015"
+			}, {
+				"service": "urn:upnp-org:serviceId:Dimming1",
+				"variable": "LoadLevelStatus",
+				"operator": ">",
+				"value": "0"
+			}]
+		}, {
+			"img": "icons_hue_a19.svg",
+			"parameters": [{
+				"id": "fill1",
+				"argument": "fill",
+				"value": "#8F8F8F"
+			}, {
+				"id": "fill1",
+				"argument": "opacity",
+				"value": "100"
+			}],
+			"conditions": [{
+				"service": "urn:upnp-org:serviceId:althue1",
+				"variable": "BulbModelID",
+				"operator": "==",
+				"value": "LCT015"
+			}, {
+				"service": "urn:upnp-org:serviceId:Dimming1",
+				"variable": "LoadLevelStatus",
+				"operator": "==",
+				"value": "0"
+			}]
 		}, {
 			"img": "icons_hue_spot_br30.svg",
 			"parameters": [{
