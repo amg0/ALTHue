@@ -31,8 +31,8 @@ mapping for the icon conditional selection is found in the .json file
 
 product name | model ID | Icon
 --- | --- | ---
-Hue bulb A19|LCT001, LCT007|icons_hue_a19.svg 
-Hue bulb A19|LCT010, LCT014, LCT015, LCT016|tbd
+Hue bulb A19|LCT001, LCT007, LCT010, LCT014, LCT015|icons_hue_a19.svg 
+Hue bulb A19| LCT016|tbd
 Hue Spot BR30|LCT002|icons_hue_spot_br30.svg
 Hue Spot GU10|LCT003|icons_hue_spot_gu10.svg
 Hue BR30 Richer Colors|LCT011|tbd
