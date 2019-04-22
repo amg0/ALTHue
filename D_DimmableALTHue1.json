@@ -148,7 +148,105 @@
                 }
             ]
         },
-		{
+        {
+            "img": "icons_hue_a19.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#FFFF00"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                    "service": "urn:upnp-org:serviceId:Dimming1",
+                    "variable": "LoadLevelStatus",
+                    "operator": ">",
+                    "value": "0",
+                    "model": "LWB010"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_a19.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                    "service": "urn:upnp-org:serviceId:Dimming1",
+                    "variable": "LoadLevelStatus",
+                    "operator": "==",
+                    "value": "0",
+                    "model": "LWB010"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_a19.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#FFFF00"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": {
+                        "service": "urn:upnp-org:serviceId:Dimming1",
+                        "variable": "LoadLevelStatus"
+                    }
+                }
+            ],
+            "conditions": [{
+                    "service": "urn:upnp-org:serviceId:Dimming1",
+                    "variable": "LoadLevelStatus",
+                    "operator": ">",
+                    "value": "0",
+                    "model": "LWB014"
+                }
+            ]
+        },
+        {
+            "img": "icons_hue_a19.svg",
+            "parameters": [
+                {
+                    "id": "fill1",
+                    "argument": "fill",
+                    "value": "#8F8F8F"
+                },
+                {
+                    "id": "fill1",
+                    "argument": "opacity",
+                    "value": "100"
+                }
+            ],
+            "conditions": [{
+                    "service": "urn:upnp-org:serviceId:Dimming1",
+                    "variable": "LoadLevelStatus",
+                    "operator": "==",
+                    "value": "0",
+                    "model": "LWB014"
+                }
+            ]
+        },
+	{
             "img": "icons_hue_a19.svg",
             "parameters": [
                 {
