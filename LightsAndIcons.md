@@ -25,7 +25,6 @@ On/Off plug-in unit | D_BinaryLight1
 
 # Mapping product name <=> Icon
 
-
 product name | model ID | Icon
 --- | --- | ---
 Hue bulb A19|LCT001, LCT007|icons_hue_a19.svg 
@@ -45,11 +44,11 @@ Disney Living Colors|LLC013|icons_hue_disney_light.svg
 ?|LWB001|icons_hue_a19.svg
 Hue White|LWB004, LWB006, LWB007|icons_hue_a19.svg
 Hue White lamp|LWB010, LWB014|tbd
-Color Light Module|LLM001|tbd
-Color Temperature Module|LLM010, LLM011, LLM012|tbd
+Color Light Module|LLM001|icons_hue_beyond.svg
+Color Temperature Module|LLM010, LLM011, LLM012|icons_hue_phoenix_downlight.svg
 Hue A19 White Ambiance|LTW001, LTW004, LTW010, LTW015|tbd
 Hue ambiance spot|LTW013, LTW014|tbd
-Hue Go|LLC020|tbd
+Hue Go|LLC020|icons_hue_go.svg
 Hue LightStrips Plus|LST002|icons_hue_light_strips.svg
 Hue color candle|LCT012|tbd
 Hue ambiance candle|LTW012|tbd
@@ -63,17 +62,18 @@ Hue white ceiling|LDF001|tbd
 Hue white floor|LDD002|tbd
 Hue white table|LDD001|tbd
 Hue white 1-10V|MWM001|tbd
-Hue Beyond Table|HBL001|tbd
-Hue Beyond Pendant|HBL002|tbd
-Hue Beyond Ceiling|HBL003|tbd
-Hue Entity Table|HEL001|tbd
-Hue Entity Pendant|HEL002|tbd
-Hue Impulse Table|HIL001|tbd
-Hue Impulse Pendant|HIL002|tbd
-Hue Phoenix Centerpiece|HML001|tbd
-Hue Phoenix Ceiling|HML002|tbd
-Hue Phoenix Pendant|HML003|tbd
+Hue Beyond Table|HBL001|icons_hue_beyond.svg
+Hue Beyond Pendant|HBL002|icons_hue_beyond.svg
+Hue Beyond Ceiling|HBL003|icons_hue_beyond.svg
+Hue Entity Table|HEL001|icons_hue_entity.svg
+Hue Entity Pendant|HEL002|icons_hue_entity.svg
+Hue Impulse Table|HIL001|icons_hue_impulse.svg
+Hue Impulse Pendant|HIL002|icons_hue_impulse.svg
+Hue Phoenix Centerpiece|HML001|icons_hue_phoenix_centerpiece.svg
+Hue Phoenix Ceiling|HML002|icons_hue_phoenix_centerpiece.svg
+Hue Phoenix Pendant|HML003|icons_hue_phoenix_centerpiece.svg
 Hue Phoenix Wall|HML004|tbd
 Hue Phoenix Table|HML005|tbd
 Hue Phoenix Downlight|HML006|tbd
+Hue Phoenix Downlight|HML007|icons_hue_phoenix_downlight.svg
 GE? | ZLL Light |icons_hue_a19.svg
