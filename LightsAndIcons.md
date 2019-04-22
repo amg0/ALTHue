@@ -26,8 +26,8 @@ On/Off plug-in unit | D_BinaryLight1
 # Mapping product name <=> Icon
 
 Product Name | Model ID | Icon
-xxx|xxx|xxx
-Hue bulb A19|LCT001, LCT007|
+xxx | xxx | xxx
+Hue bulb A19 |LCT001, LCT007 |
 Hue bulb A19|LCT010, LCT014, LCT015, LCT016|
 Hue Spot BR30|LCT002|
 Hue Spot GU10|LCT003|
