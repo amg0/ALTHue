@@ -40,7 +40,7 @@ Hue Living Colors Bloom|LLC011, LLC012|tbd
 Living Colors Gen3 Iris*|LLC006|tbd
 Living Colors Gen3 Bloom, Aura*|LLC005, LLC007, LLC014|tbd
 Disney Living Colors|LLC013|tbd
-Hue White|LWB004, LWB006, LWB007|tbd
+Hue White|LWB004, LWB006, LWB007|icons_hue_a19.svg
 Hue White lamp|LWB010, LWB014|tbd
 Color Light Module|LLM001|tbd
 Color Temperature Module|LLM010, LLM011, LLM012|tbd
