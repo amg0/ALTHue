@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.44"
+local version		= "v1.44b"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -39,7 +39,12 @@ local LightTypes = {
 local SensorTypes = {
 	["ZLLTemperature"] = 	{  dtype="urn:schemas-micasaverde-com:device:TemperatureSensor:1" , dfile="D_TemperatureSensor1.xml" , vartable={"urn:upnp-org:serviceId:TemperatureSensor1,CurrentTemperature=0"} },
 	["ZLLPresence"] = 		{  dtype="urn:schemas-micasaverde-com:device:MotionSensor:1" , dfile="D_MotionSensor1.xml" , vartable={"urn:micasaverde-com:serviceId:SecuritySensor1,Tripped=0"} },
-	["ZLLLightLevel"] = 	{  dtype="urn:schemas-micasaverde-com:device:LightSensor:1" , dfile="D_LightSensor1.xml" , vartable={"urn:micasaverde-com:serviceId:LightSensor1,CurrentLevel=0"} }
+	["ZLLLightLevel"] = 	{  dtype="urn:schemas-micasaverde-com:device:LightSensor:1" , dfile="D_LightSensor1.xml" , vartable={"urn:micasaverde-com:serviceId:LightSensor1,CurrentLevel=0"} },
+	["ZLLSwitch"] = 		{  dtype="urn:schemas-micasaverde-com:device:SceneController:1" , dfile="D_SceneController1.xml" , vartable={
+		"urn:micasaverde-com:serviceId:SceneController1,sl_SceneActivated=",
+		"urn:micasaverde-com:serviceId:SceneController1,LastSceneID=",
+		"urn:micasaverde-com:serviceId:SceneController1,LastSceneTime="
+	}}
 }
 
 local json = require("dkjson")
@@ -949,6 +954,8 @@ function refreshHueData(lul_device,norefresh)
 						end
 					elseif (v.type == "ZLLLightLevel") then
 						setVariableIfChanged("urn:micasaverde-com:serviceId:LightSensor1", "CurrentLevel", v.state.lightlevel or "", childId )
+					elseif (v.type == "ZLLSwitch") then
+						-- todo
 					end
 				end
 			end		
@@ -983,7 +990,7 @@ local function SyncSensors(lul_device,data,child_devices)
 				luup.chdev.append(
 					lul_device, child_devices,
 					v.uniqueid,					-- children map index is altid
-					NamePrefix..v.name,		-- children map name attribute is device name
+					NamePrefix..v.name,			-- children map name attribute is device name
 					mapentry.dtype,				-- children device type
 					mapentry.dfile,				-- children D-file
 					"", 						-- children I-file
