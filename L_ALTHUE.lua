@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.44b"
+local version		= "v1.44c"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -955,7 +955,9 @@ function refreshHueData(lul_device,norefresh)
 					elseif (v.type == "ZLLLightLevel") then
 						setVariableIfChanged("urn:micasaverde-com:serviceId:LightSensor1", "CurrentLevel", v.state.lightlevel or "", childId )
 					elseif (v.type == "ZLLSwitch") then
-						-- todo
+						setVariableIfChanged("urn:micasaverde-com:serviceId:SceneController1", "LastSceneTime", convertedTimestamp or "", childId )
+						setVariableIfChanged("urn:micasaverde-com:serviceId:SceneController1", "LastSceneID", v.state.buttonevent or "", childId )
+						setVariableIfChanged("urn:micasaverde-com:serviceId:SceneController1", "NumButtons", tablelength(v.capabilities.inputs), childId )
 					end
 				end
 			end		
