@@ -954,10 +954,20 @@ function refreshHueData(lul_device,norefresh)
 						end
 					elseif (v.type == "ZLLLightLevel") then
 						setVariableIfChanged("urn:micasaverde-com:serviceId:LightSensor1", "CurrentLevel", v.state.lightlevel or "", childId )
-					elseif (v.type == "ZLLSwitch") then
+					elseif (v.type == "ZLLSwitch" ) then
+						local nbuttons,selectedbutton = 0,0
+						for idx,input in pairs(v.capabilities.inputs) do
+							for k,event in pairs(input.events) do
+								nbuttons = nbuttons+1
+								if (v.state.buttonevent == event.buttonevent) then
+									selectedbutton = nbuttons
+								end
+							end
+						end
 						setVariableIfChanged("urn:micasaverde-com:serviceId:SceneController1", "LastSceneTime", convertedTimestamp or "", childId )
 						setVariableIfChanged("urn:micasaverde-com:serviceId:SceneController1", "LastSceneID", v.state.buttonevent or "", childId )
-						setVariableIfChanged("urn:micasaverde-com:serviceId:SceneController1", "NumButtons", tablelength(v.capabilities.inputs), childId )
+						setVariableIfChanged("urn:micasaverde-com:serviceId:SceneController1", "sl_SceneActivated", selectedbutton or "", childId )
+						setVariableIfChanged("urn:micasaverde-com:serviceId:SceneController1", "NumButtons", nbuttons, childId )
 					end
 				end
 			end		
