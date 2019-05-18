@@ -1,12 +1,12 @@
 {
-  "flashicon": "https://cdn.rawgit.com/amg0/ALTHue/bfa548bc/iconALTHUE.png",
-  "default_icon": "https://cdn.rawgit.com/amg0/ALTHue/bfa548bc/iconALTHUE.png",
+  "flashicon": "https://cdn.jsdelivr.net/gh/amg0/ALTHue/iconALTHUE.png",
+  "default_icon": "https://cdn.jsdelivr.net/gh/amg0/ALTHue/iconALTHUE.png",
   "halloIconsDir": "pics\/hallo",
   "state_icons": [
     "iconALTHUE_0.png",
     "iconALTHUE_100.png",
 	{
-		"img": "https://cdn.rawgit.com/amg0/ALTHue/bfa548bc/iconALTHUE_0.png",
+		"img": "https://cdn.jsdelivr.net/gh/amg0/ALTHue/iconALTHUE_0.png",
 		"conditions": [
 			{
 				"service": "urn:upnp-org:serviceId:althue1",
@@ -17,7 +17,7 @@
 		]
 	},
 	{
-		"img": "https://cdn.rawgit.com/amg0/ALTHue/bfa548bc/iconALTHUE_100.png",
+		"img": "https://cdn.jsdelivr.net/gh/amg0/ALTHue/iconALTHUE_100.png",
 		"conditions": [
 			{
 				"service": "urn:upnp-org:serviceId:althue1",
