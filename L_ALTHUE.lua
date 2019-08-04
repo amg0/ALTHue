@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.45"
+local version		= "v1.45b"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -328,6 +328,10 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 	return json.decode(data) ,""
 end
 
+local function getZoneUniqueID(idx)
+	return "group"..idx
+end
+
 local function getHueConfig(lul_device)
 	local data,msg = ALTHueHttpCall(lul_device,"GET","config")
 	return data,msg
@@ -368,6 +372,20 @@ local function getSensors(lul_device)
 	return data,msg
 end
 
+local function getZones(lul_device)
+	local data,msg = ALTHueHttpCall(lul_device,"GET","groups")
+	local zones = {}
+	if (data == nil) then
+		return nil
+	end
+	for groupid,group in pairs(data) do
+		if (group.type == "Zone") then
+			zones[groupid] = group
+		end
+	end
+	debug(string.format("zones=%s",json.encode(zones)))
+	return zones,msg
+end
 ------------------------------------------------------------------------------------------------
 -- Http handlers : Communication FROM ALTUI
 -- http://192.168.1.5:3480/data_request?id=lr_ALTHUE_Handler&command=xxx
@@ -978,6 +996,24 @@ function refreshHueData(lul_device,norefresh)
 		debug(string.format("After Sensors, success is : %s",tostring(success)))
 	end
 	
+	--Zones
+	if (success) then
+		data,msg = getZones(lul_device)
+		if (data~=nil) then
+			for k,v in pairs(data) do
+				local idx = tonumber(k)
+				local uid = getZoneUniqueID(idx)
+				local childId,child = findChild( lul_device, uid)
+				if (childId~=nil) then
+					-- if anyone device is light, we consider the zone as switched on
+					local status = (v.state.any_on == true) and "1" or "0"
+					setVariableIfChanged("urn:upnp-org:serviceId:SwitchPower1", "Status", status, childId )
+					setVariableIfChanged("urn:upnp-org:serviceId:SwitchPower1", "Target", status, childId )
+				end
+			end
+		end
+	end
+		
 	if (norefresh==false) then
 		local period= getSetVariable(ALTHUE_SERVICE, "RefreshPeriod", lul_device, DEFAULT_REFRESH)
 		debug(string.format("programming next refreshHueData(%s) in %s sec",lul_device,period))
@@ -1053,6 +1089,38 @@ local function SyncLights(lul_device,data,child_devices)
 	return (data~=nil)
 end
 
+local function SyncZones(lul_device,data,child_devices)
+	debug(string.format("SyncZones(%s)",lul_device))
+	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
+	if (data~=nil) and (tablelength(data)>0) then
+		local vartable = {
+			"urn:upnp-org:serviceId:SwitchPower1,Status=0",
+			"urn:upnp-org:serviceId:SwitchPower1,Target=0"
+		}
+		for k,v in pairs(data) do
+			local idx = tonumber(k)
+			local mapentry = LightTypes["On/Off light"]	-- on off type
+			local uid = getZoneUniqueID(idx)
+			if (idx~=nil) then 
+				luup.chdev.append(
+					lul_device, child_devices,
+					uid ,					-- unique ID "group"..idx
+					NamePrefix.."Zone "..v.name,	-- children map name attribute is device name
+					mapentry.dtype,				-- children device type
+					mapentry.dfile,				-- children D-file
+					"", 						-- children I-file
+					table.concat(vartable, "\n"),	-- params
+					false						-- not embedded
+				)
+				MapUID2Index[ uid ]=k
+			end
+		end	
+	else
+		warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
+		return false
+	end
+end
+
 local function InitDevices(lul_device,data)	 
 	debug(string.format("InitDevices(%s) MapUID2Index is: %s",lul_device,json.encode(MapUID2Index)))
 	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
@@ -1076,13 +1144,16 @@ local function SyncDevices(lul_device)
 	debug(string.format("SyncDevices(%s)",lul_device))
 	local lights,msg = getLights(lul_device)
 	local sensors,msg = getSensors(lul_device)
-	if (light~=nil) or (sensors~=nil) then
+	local zones = getZones(lul_device)
+	if (light~=nil) or (sensors~=nil) or (zones~=nil) then
 		local child_devices = luup.chdev.start(lul_device);
 		SyncLights(lul_device, lights, child_devices)
 		SyncSensors(lul_device, sensors, child_devices)
+		SyncZones(lul_device, zones, child_devices)
 		luup.chdev.sync(lul_device, child_devices)	
 		InitDevices(lul_device, lights)
 		InitDevices(lul_device, sensors)
+		-- nothng to init for Zones
 	else
 		warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
 		return false
