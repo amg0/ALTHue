@@ -16,6 +16,7 @@ local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
 local NAME_PREFIX	= "Hue "	-- trailing space needed
+local ZONE_PREFIX	= "zone"
 local RAND_DELAY = 10
 local hostname		= ""
 local MapUID2Index={}
@@ -329,7 +330,7 @@ local function ALTHueHttpCall(lul_device,verb,cmd,body)
 end
 
 local function getZoneUniqueID(idx)
-	return "group"..idx
+	return ZONE_PREFIX..idx
 end
 
 local function getHueConfig(lul_device)
@@ -687,6 +688,23 @@ local function HueLampSetState(lul_device,body)
 	end	
 end
 
+local function HueLampSetZoneState(lul_device,body)
+	debug(string.format("HueLampSetState(%s,%s)",lul_device,body))
+	lul_device = tonumber(lul_device)
+	local lul_root = getRoot(lul_device)
+	local childid = luup.devices[lul_device].id;
+	-- local prefix = childid:sub(1,ZONE_PREFIX:len())
+	-- local zid = childid:sub(ZONE_PREFIX:len()+1)
+	local hueindex = MapUID2Index[ childid ]
+	if (hueindex ~= nil) then
+		local data,msg = ALTHueHttpCall(
+			lul_root,
+			"PUT",
+			string.format("groups/%s/action",hueindex),
+			body)
+	end	
+end
+
 function UserSetLoadLevelTarget(lul_device,newValue)
 	debug(string.format("UserSetLoadLevelTarget(%s,%s)",lul_device,newValue))
 	lul_device = tonumber(lul_device)
@@ -717,7 +735,14 @@ function UserSetPowerTarget(lul_device,newTargetValue)
 		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Target", v, lul_device)
 		luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Status", v, lul_device)
 		
-		HueLampSetState(lul_device,string.format('{"on": %s}',(newTargetValue > 0) and "true" or "false"))
+		local childid = luup.devices[lul_device].id
+		local body = string.format('{"on": %s}',(newTargetValue > 0) and "true" or "false")
+		if (childid:len()>=ZONE_PREFIX:len()) and (childid:sub(1,ZONE_PREFIX:len()) == ZONE_PREFIX) then
+			HueLampSetZoneState(lul_device,body)
+		else
+			HueLampSetState(lul_device,body)
+		end
+
 	else
 		UserSetLoadLevelTarget(lul_device, (newTargetValue>0) and "100" or "0" )
 	end
@@ -1104,7 +1129,7 @@ local function SyncZones(lul_device,data,child_devices)
 			if (idx~=nil) then 
 				luup.chdev.append(
 					lul_device, child_devices,
-					uid ,					-- unique ID "group"..idx
+					uid ,					-- unique ID ZONE_PREFIX..idx
 					NamePrefix.."Zone "..v.name,	-- children map name attribute is device name
 					mapentry.dtype,				-- children device type
 					mapentry.dfile,				-- children D-file
