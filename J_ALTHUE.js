@@ -70,6 +70,24 @@ var ALTHUE = (function(api,$) {
 					})
 				})
 				var html = ALTHUE.array2Table(model,'id',[],'My Hue Lights','ALTHue-cls','ALTHue-lightstbl',false)
+				set_panel_html(html);
+				
+				model = []
+				jQuery.each( Object.keys( data.groups ).filter( (item) => data.groups[item].type == "Zone") || [], function(idx,itemid) {
+					var item = data.groups[ itemid ]
+					model.push({
+						id:idx,
+						type: item.type,
+						name: item.name,
+						lights: JSON.stringify(item.lights)
+						// model: ALTHUE.format("{0} {1}",item.manufacturername,item.modelid),
+						// swversion:item.swversion,
+						// lastupdated:item.state.lastupdated,
+					})
+				})
+				html = ALTHUE.array2Table(model,'id',[],'My Hue Zones','ALTHue-cls','ALTHue-groupstbl',false)
+				jQuery("#ALTHue-lightstbl").after(html)
+				
 				model = []
 				jQuery.each( data.sensors || [], function(idx,item) {
 					model.push({
@@ -81,8 +99,9 @@ var ALTHUE = (function(api,$) {
 						lastupdated:item.state.lastupdated,
 					})
 				})
-				html += ALTHUE.array2Table(model,'id',[],'My Hue Sensors','ALTHue-cls','ALTHue-sensorstbl',false)
-				set_panel_html(html);
+				html = ALTHUE.array2Table(model,'id',[],'My Hue Sensors','ALTHue-cls','ALTHue-sensorstbl',false)
+				jQuery("#ALTHue-groupstbl").after(html)
+				
 				jQuery(".althue-chgeffect").click(function(e){
 					var uid = jQuery(this).data('uid');
 					var url = ALTHUE.buildHandlerUrl(deviceID,"setColorEffect",{hueuid:uid, effect:$(this).text().trim()})
