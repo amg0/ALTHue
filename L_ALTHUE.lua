@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.46"
+local version		= "v1.47"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -776,10 +776,21 @@ function UserSetColor(lul_device,newColorTarget)
 	HueLampSetState(lul_device,body)
 end
 
+function fixcolor(str)
+	local first = str:sub(1,1)
+	if (tonumber(first)==nil) then
+		str = str:sub(2)
+	end
+	return str
+end
+
 function UserSetColorRGB(lul_device,newColorRGBTarget)
 	debug(string.format("UserSetColorRGB(%s,%s)",lul_device,newColorRGBTarget))
 	local parts = Split(newColorRGBTarget,',')
-	local x,y = rgb_to_cie(parts[1], parts[2], parts[3])
+	local red = fixcolor(parts[1])
+	local green = fixcolor(parts[2])
+	local blue = fixcolor(parts[3])
+	local x,y = rgb_to_cie(red,green,blue)
 	debug(string.format("RGB: %s => x:%s y:%s",newColorRGBTarget, tostring(x), tostring(y)))
 	local newValue = luup.variable_get("urn:upnp-org:serviceId:Dimming1", "LoadLevelStatus", lul_device)
 	local bri = math.floor(255*newValue/100)
