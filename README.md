@@ -18,6 +18,8 @@ Why another one in addition to Vera's one
 - v 1.44 : fix strange Tadfridi lamp behavior reporting xy mode and only ct data
 - v 1.45 : Hue Dimmer Switch support
 - v 1.46 : Hue Zones support
+- v 1.47 : fix for RGB devices
+
  
 ### Installation instructions:
 https://github.com/amg0/ALTHue/blob/master/Doc/ALTHue%20Philips%20Hue%20plugin.pdf
