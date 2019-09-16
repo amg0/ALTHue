@@ -19,6 +19,7 @@ Why another one in addition to Vera's one
 - v 1.45 : Hue Dimmer Switch support
 - v 1.46 : Hue Zones support
 - v 1.47 : fix for RGB devices
+- v 1.48 : force light categories to be 2, sensor categories to be 4
 
  
 ### Installation instructions:

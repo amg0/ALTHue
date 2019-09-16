@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.47"
+local version		= "v1.48"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -1157,8 +1157,8 @@ local function SyncZones(lul_device,data,child_devices)
 	end
 end
 
-local function InitDevices(lul_device,data)	 
-	debug(string.format("InitDevices(%s) MapUID2Index is: %s",lul_device,json.encode(MapUID2Index)))
+local function InitDevices(lul_device,data,category)	 
+	debug(string.format("InitDevices(%s,data,%s) MapUID2Index is: %s",lul_device,(category or ""),json.encode(MapUID2Index)))
 	local NamePrefix = getSetVariable(ALTHUE_SERVICE, "NamePrefix", lul_device, NAME_PREFIX)
 	for k,v in pairs(data) do
 		if (v.uniqueid~=nil) then	-- Hue Daylight sensor does not have uniqueID
@@ -1168,6 +1168,9 @@ local function InitDevices(lul_device,data)
 				setAttrIfChanged("manufacturer", v.manufacturername, childId)
 				setAttrIfChanged("model", v.modelid, childId)
 				luup.variable_set(ALTHUE_SERVICE, "BulbModelID", v.modelid, childId)
+				if (category ~= nil) then
+					setAttrIfChanged("category_num", category, childId)	--Philips Controller
+				end
 			-- unsuportedf devices wont be found, they have been filtered out at creationg time
 			-- else
 				-- warning(string.format("Could not find Hue device %s",v.uniqueid))
@@ -1187,8 +1190,8 @@ local function SyncDevices(lul_device)
 		SyncSensors(lul_device, sensors, child_devices)
 		SyncZones(lul_device, zones, child_devices)
 		luup.chdev.sync(lul_device, child_devices)	
-		InitDevices(lul_device, lights)
-		InitDevices(lul_device, sensors)
+		InitDevices(lul_device, lights,2)
+		InitDevices(lul_device, sensors,4)
 		-- nothng to init for Zones
 	else
 		warning(string.format("Communication failure with the Hue Hub; msg:%s",msg or "nil"))
