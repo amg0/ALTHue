@@ -45,9 +45,8 @@ Hue Phoenix Downlight|HML007|icons_hue_phoenix_downlight.svg
 Hue Phoenix Pendant|HML003|icons_hue_phoenix_centerpiece.svg
 Hue Phoenix Table|HML005|tbd
 Hue Phoenix Wall|HML004|tbd
-Hue bulb A19|LCT016|tbd
 Hue BR30 Richer Colors|LCT011|tbd
-Hue bulb A19|LCT001, LCT007, LCT010, LCT014, LCT015|icons_hue_a19.svg 
+Hue bulb A19|LCT001, LCT007, LCT010, LCT014, LCT015, LCT016|icons_hue_a19.svg 
 Hue color candle|LCT012|tbd
 Hue Spot BR30|LCT002|icons_hue_spot_br30.svg
 Hue Spot GU10|LCT003|icons_hue_spot_gu10.svg
