@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.50b"
+local version		= "v1.50"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -785,7 +785,16 @@ function fixcolor(str)
 end
 
 function UserSetColorTemp(lul_device,newColorTempTarget)
-	debug(string.format("UserSetColorTemp(%s,%s)",lul_device,newColorTempTarget))
+	-- The Mired color temperature of the light. 2012 connected lights are capable of 153 (6500K) to 500 (2000K).
+	debug(string.format("UserSetColorTemp(%s,%s)",lul_device,newColorTempTarget or '' ))
+	local newTemp = tonumber(newColorTempTarget or 0)
+	if (newTemp>500) then
+		newTemp = 500
+	elseif (newTemp<153) then
+		newTemp = 153
+	end
+	local body = string.format('{"ct":%d}', newTemp )
+	HueLampSetState(lul_device,body)
 end
 
 function UserSetColorRGB(lul_device,newColorRGBTarget)
