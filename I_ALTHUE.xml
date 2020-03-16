@@ -99,7 +99,7 @@
 			<serviceId>urn:micasaverde-com:serviceId:Color1</serviceId>
             <name>SetColorTemp</name>
 			<run>
-				UserSetColorTemp(lul_device,lul_settings.newColorRGBTarget)
+				UserSetColorTemp(lul_device,lul_settings.newColorTempTarget)
 			</run>            
         </action>
 
