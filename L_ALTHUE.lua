@@ -11,7 +11,7 @@ local ALTHUE_SERVICE	= "urn:upnp-org:serviceId:althue1"
 local devicetype	= "urn:schemas-upnp-org:device:althue:1"
 -- local this_device	= nil
 local DEBUG_MODE	= false -- controlled by UPNP action
-local version		= "v1.49"
+local version		= "v1.50b"
 local JSON_FILE = "D_ALTHUE.json"
 local UI7_JSON_FILE = "D_ALTHUE_UI7.json"
 local DEFAULT_REFRESH = 10
@@ -782,6 +782,10 @@ function fixcolor(str)
 		str = str:sub(2)
 	end
 	return str
+end
+
+function UserSetColorTemp(lul_device,newColorTempTarget)
+	debug(string.format("UserSetColorTemp(%s,%s)",lul_device,newColorTempTarget))
 end
 
 function UserSetColorRGB(lul_device,newColorRGBTarget)
